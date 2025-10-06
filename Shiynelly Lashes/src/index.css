@@ -14,26 +14,104 @@ body {
 	min-height: 100vh;
 	overflow-x: hidden;
 }
+/* Navbar Styles */
 .navbar {
 	position: fixed;
 	top: 0;
 	left: 0;
 	right: 0;
-	z-index: 50;
-	padding: 1.5rem 2rem;
+	z-index: 1000;
+	padding: 1.5rem 0;
+	background: transparent;
 }
-nav {
+
+.navbar-container {
+	max-width: 1400px;
+	margin: 0 auto;
+	padding: 1rem 3rem;
 	display: flex;
-	justify-content: space-between;
 	align-items: center;
-	padding: 60px 150px;
-	position: fixed;
-	top: 0;
-	left: 0;
-	width: 100%;
-	z-index: 100;
-	box-sizing: border-box;
+	justify-content: space-between;
+	background: rgba(255, 255, 255, 0.1);
+	backdrop-filter: blur(10px);
+	-webkit-backdrop-filter: blur(10px);
+	border-radius: 100px;
+	border: 1px solid rgba(255, 255, 255, 0.2);
+	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
+
+.navbar-logo {
+	display: flex;
+	align-items: center;
+	text-decoration: none;
+}
+
+.navbar-logo img {
+	height: 50px;
+	width: auto;
+}
+.logo-text {
+	font-family: "Chetta Vissto", serif;
+	color: white;
+	font-size: 1.1rem;
+	font-weight: bold;
+	margin-left: 0.1rem;
+	text-decoration: none;
+}
+
+.navbar-links {
+	display: flex;
+	align-items: center;
+	gap: 2.5rem;
+}
+
+.nav-link {
+	color: white;
+	text-decoration: none;
+	font-size: 1rem;
+	font-weight: 500;
+	transition: opacity 0.3s ease;
+	position: relative;
+}
+
+.nav-link:hover {
+	opacity: 0.8;
+}
+
+.nav-link::after {
+	content: "";
+	position: absolute;
+	bottom: -4px;
+	left: 0;
+	width: 0;
+	height: 2px;
+	background-color: white;
+	transition: width 0.3s ease;
+}
+
+.nav-link:hover::after {
+	width: 100%;
+}
+
+.nav-button {
+	background-color: #a9734d;
+	color: white;
+	padding: 0.75rem 2rem;
+	border-radius: 50px;
+	text-decoration: none;
+	font-size: 1rem;
+	font-weight: 600;
+	transition: all 0.3s ease;
+	border: none;
+	cursor: pointer;
+}
+
+.nav-button:hover {
+	background-color: #8f5f3f;
+	transform: translateY(-2px);
+	box-shadow: 0 4px 12px rgba(169, 115, 77, 0.3);
+}
+/* Hero Styles */
 .hero-container {
 	position: relative;
 	width: 100%;

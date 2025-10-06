@@ -5,7 +5,7 @@ function Hero() {
 		<div className="hero-container">
 			{/* Silk Background */}
 			<div className="hero-background">
-				<Silk speed={5} scale={1} color="#7B7481" noiseIntensity={1.5} rotation={0} />
+				<Silk speed={5} scale={1} color="#c39e74" noiseIntensity={1.5} rotation={0} />
 			</div>
 
 			{/* Hero Content */}
