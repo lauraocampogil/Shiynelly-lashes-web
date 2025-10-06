@@ -1,7 +1,7 @@
 @import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap");
 @font-face {
 	font-family: "Chetta Vissto";
-	src: url("./assets/fonts/Safira\ March\ Personal\ Use\ Only.ttf") format("opentype");
+	src: url("./assets/fonts/ChettaVissto.otf") format("opentype");
 	font-weight: normal;
 	font-style: normal;
 }
@@ -172,4 +172,20 @@ body {
 
 .hero-cta:hover {
 	opacity: 0.9;
+}
+/* NosPrestations Styles */
+.prestations-container {
+	margin-top: 2rem;
+	text-align: center;
+	position: relative;
+	width: 100%;
+	height: 100vh;
+	overflow: hidden;
+}
+h2 {
+	font-family: "Chetta Vissto", sans-serif;
+	font-size: 3rem;
+	text-align: center;
+	margin-top: 2rem;
+	color: #312019;
 }
