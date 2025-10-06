@@ -1,7 +1,7 @@
 @import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap");
 @font-face {
 	font-family: "Chetta Vissto";
-	src: url("./assets/fonts/ChettaVissto.otf") format("opentype");
+	src: url("./assets/fonts/Safira\ March\ Personal\ Use\ Only.ttf") format("opentype");
 	font-weight: normal;
 	font-style: normal;
 }
@@ -26,7 +26,7 @@ body {
 }
 
 .navbar-container {
-	max-width: 1400px;
+	max-width: 1100px;
 	margin: 0 auto;
 	padding: 1rem 3rem;
 	display: flex;
@@ -53,10 +53,11 @@ body {
 .logo-text {
 	font-family: "Chetta Vissto", serif;
 	color: white;
-	font-size: 1.1rem;
+	font-size: 1.3rem;
 	font-weight: bold;
 	margin-left: 0.1rem;
 	text-decoration: none;
+	text-align: center;
 }
 
 .navbar-links {

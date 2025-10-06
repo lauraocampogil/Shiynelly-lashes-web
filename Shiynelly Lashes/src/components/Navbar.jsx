@@ -6,7 +6,7 @@ function Navbar() {
 			<div className="navbar-container">
 				<a href="./" className="navbar-logo">
 					<img src={Logo} alt="Shiynelly Lashes Logo" />
-					<span className="logo-text">Shiynelly Lashes</span>
+					<p className="logo-text">Shiynelly Lashes</p>
 				</a>
 
 				<div className="navbar-links">
