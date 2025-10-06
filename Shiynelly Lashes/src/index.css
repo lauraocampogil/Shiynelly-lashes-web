@@ -5,3 +5,90 @@
 	font-weight: normal;
 	font-style: normal;
 }
+body {
+	margin: 0;
+	padding: 0;
+	background-color: #f3ede2;
+	background-size: cover;
+	font-family: "DM Sans", sans-serif;
+	min-height: 100vh;
+	overflow-x: hidden;
+}
+.navbar {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	z-index: 50;
+	padding: 1.5rem 2rem;
+}
+nav {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 60px 150px;
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	z-index: 100;
+	box-sizing: border-box;
+}
+.hero-container {
+	position: relative;
+	width: 100%;
+	height: 100vh;
+	overflow: hidden;
+}
+
+.hero-background {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	width: 100%;
+	height: 100%;
+}
+
+.hero-content {
+	position: relative;
+	z-index: 10;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	height: 100%;
+	text-align: center;
+	color: white;
+	padding: 0 1rem;
+}
+
+.hero-title {
+	font-size: clamp(3rem, 8vw, 5rem);
+	font-weight: bold;
+	margin-bottom: 1.5rem;
+	margin-top: 0;
+}
+
+.hero-subtitle {
+	font-size: clamp(1.25rem, 3vw, 1.5rem);
+	margin-bottom: 2rem;
+	opacity: 0.9;
+}
+
+.hero-cta {
+	background-color: white;
+	color: #333;
+	padding: 0.75rem 2rem;
+	border-radius: 9999px;
+	font-weight: 600;
+	border: none;
+	cursor: pointer;
+	font-size: 1rem;
+	transition: opacity 0.3s;
+}
+
+.hero-cta:hover {
+	opacity: 0.9;
+}
