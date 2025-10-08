@@ -357,6 +357,20 @@ h2 {
 	.hamburger {
 		display: flex;
 	}
+	.hero-content {
+		padding: 0 0.5rem;
+	}
+	.hero-title {
+		width: 90%;
+		font-size: 2.7rem;
+	}
+	.hero-subtitle {
+		width: 90%;
+		font-size: 1.2rem;
+	}
+	h2 {
+		font-size: 2rem;
+	}
 }
 
 @media (max-width: 600px) {
@@ -366,5 +380,42 @@ h2 {
 
 	.logo-text {
 		display: none;
+	}
+}
+@media (max-width: 400px) {
+	.hero-content {
+		padding: 0 0.5rem;
+	}
+	.hero-title {
+		width: 95%;
+		font-size: 2.3rem;
+		padding: 0 0.5rem;
+	}
+	.hero-subtitle {
+		width: 90%;
+		font-size: 1.1rem;
+	}
+}
+@media (max-width: 360px) {
+	.hero-content {
+		padding: 0 0.25rem;
+	}
+	.hero-title {
+		width: 100%;
+		font-size: 2rem;
+		padding: 0 0.5rem;
+		line-height: 1.2;
+	}
+	.hero-subtitle {
+		width: 95%;
+		font-size: 1rem;
+	}
+
+	.navbar-container {
+		padding: 1rem 1rem;
+	}
+
+	.navbar-logo img {
+		height: 50px;
 	}
 }
