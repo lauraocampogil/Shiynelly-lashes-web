@@ -1,33 +1,38 @@
+import { useState } from "react";
+import { prestations } from "../../constants/index.js";
+import SpotlightCard from "./SpotlightCard.jsx";
+
 function NosPrestations() {
+	const [openResults, setOpenResults] = useState({});
+
+	const toggleResult = (index) => {
+		setOpenResults((prev) => ({
+			...prev,
+			[index]: !prev[index],
+		}));
+	};
 	return (
 		<div className="prestations-container">
 			<h2>Nos Prestations</h2>
-			<div className="prestations-list">
-				<div className="prestation-item">
-					<h3>Cils à Cils</h3>
-					<p>Une extension par cil naturel pour un look subtil et élégant</p>
-					<span>15€</span>
-				</div>
-				<div className="prestation-item">
-					<h3>Pose Mixte</h3>
-					<p>Combinaison parfaite entre naturel et volume pour un regard équilibré</p>
-					<span>15€</span>
-				</div>
-				<div className="prestation-item">
-					<h3>Posse Russe</h3>
-					<p>Technique russe pour un volume spectaculaire et un regard intense</p>
-					<span>15€</span>
-				</div>
-				<div className="prestation-item">
-					<h3>Dépose</h3>
-					<p>Retrait professionnel et en douceur de vos extensions existantes</p>
-					<span>15€</span>
-				</div>
-				<div className="prestation-item">
-					<h3>Clusters</h3>
-					<p>Pose rapide et facile à enlever - Il faut venir avec la boîte</p>
-					<span>15€</span>
-				</div>
+			<div className="prestations-grid">
+				{prestations.map((prestation, index) => (
+					<SpotlightCard key={index} className="prestation-card" spotlightColor="rgba(195, 158, 116, 0.5)">
+						<div className="prestation-content">
+							<h3>{prestation.title}</h3>
+							<p className="prestation-description">{prestation.description}</p>
+							<span className="prestation-price">{prestation.price}</span>
+
+							<button className={`result-toggle ${openResults[index] ? "active" : ""}`} onClick={() => toggleResult(index)}>
+								Résultat
+								<i className={`fas fa-arrow-down arrow-icon ${openResults[index] ? "rotated" : ""}`}></i>
+							</button>
+
+							<div className={`result-content-wrapper ${openResults[index] ? "show" : ""}`}>
+								<div className="result-text">{prestation.result}</div>
+							</div>
+						</div>
+					</SpotlightCard>
+				))}
 			</div>
 		</div>
 	);
