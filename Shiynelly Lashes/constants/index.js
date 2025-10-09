@@ -1,6 +1,6 @@
 export const navLinks = [
 	{ name: "Home", path: "/" },
-	{ name: "Nos Prestations", path: "#nos prestations" },
+	{ name: "Nos Prestations", path: "#nosprestations" },
 	{ name: "Contact", path: "#contact" },
 	{ name: "Réservation", path: "#réservation" },
 ];
@@ -35,5 +35,42 @@ export const prestations = [
 		description: "La pose de clusters consiste à appliquer des petits bouquets de cils prêts à poser sur la base des cils naturels",
 		price: "8€",
 		result: "Regard intense et fourni, parfait pour une beauté express",
+	},
+];
+export const services = [
+	{
+		id: "cil-a-cil",
+		name: "Cils à Cils - 20€",
+		price: "20€",
+		duration: 210, // 3h30 in minutes
+		description: "La pose cil à cil consiste à appliquer une extension sur chaque cil naturel pour un regard naturel, élégant et structuré.",
+	},
+	{
+		id: "pose-whispy",
+		name: "Pose Whispy - 15€",
+		price: "15€",
+		duration: 240, // 4h in minutes
+		description: 'La pose Whispy, aussi appelée effet "foxy eyes" ou "spiky", se caractérise par des pics de longueurs variées.',
+	},
+	{
+		id: "pose-russe",
+		name: "Pose Russe - 20€",
+		price: "20€",
+		duration: 270, // 4h30 in minutes
+		description: "La pose russe en bouquet consiste à appliquer des éventails d'extensions préformés sur chaque cil naturel.",
+	},
+	{
+		id: "clusters",
+		name: "Clusters - 8€ (venir avec la boîte)",
+		price: "8€",
+		duration: 120, // 2h in minutes
+		description: "La pose de clusters consiste à appliquer des petits bouquets de cils prêts à poser.",
+	},
+	{
+		id: "depose",
+		name: "Dépose - 10€",
+		price: "10€",
+		duration: 90, // 1h30 in minutes
+		description: "La dépose de cils permet de retirer en douceur les extensions sans abîmer les cils naturels.",
 	},
 ];
