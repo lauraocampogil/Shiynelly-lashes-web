@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
-import { services } from "../../constants/index.js";
 import emailjs from "@emailjs/browser";
+import { services } from "../../constants/index.js";
 
 function BookingForm() {
 	const form = useRef();
@@ -54,6 +54,14 @@ function BookingForm() {
 
 	const handleChange = (e) => {
 		const { name, value } = e.target;
+
+		// Validate date is weekend when date changes
+		if (name === "date" && value) {
+			if (!isWeekend(value)) {
+				alert("Veuillez sélectionner uniquement un samedi ou un dimanche");
+				return;
+			}
+		}
 
 		setFormData({ ...formData, [name]: value });
 	};
@@ -180,7 +188,10 @@ function BookingForm() {
 						<label htmlFor="date">
 							<i className="far fa-calendar-alt"></i> Date souhaitée (Week-end uniquement)
 						</label>
-						<input type="date" id="date" name="date" value={formData.date} onChange={handleChange} min={getMinDate()} max={getMaxDate()} className="weekend-only-date" required />
+						<div className="date-input-container">
+							<input type="date" id="date" name="date" value={formData.date} onChange={handleChange} min={getMinDate()} max={getMaxDate()} className="weekend-only-date" required />
+							<i className="fas date-calendar-icon"></i>
+						</div>
 						{formData.date && !isWeekend(formData.date) && (
 							<p className="error-message">
 								<i className="fas fa-exclamation-circle"></i> Uniquement samedi ou dimanche
