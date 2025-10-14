@@ -15,6 +15,7 @@ function NosPrestations() {
 		<section id="nosprestations">
 			<div className="prestations-container">
 				<h2>Nos Prestations</h2>
+
 				<div className="prestations-grid">
 					{prestations.map((prestation, index) => (
 						<SpotlightCard key={index} className="prestation-card" spotlightColor="rgba(195, 158, 116, 0.5)">

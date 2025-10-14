@@ -870,6 +870,19 @@ h2 {
 .footer-legal span {
 	color: #8a7a68;
 }
+/* Animation styles - add these to your existing CSS */
+.hero-animate {
+	opacity: 0;
+	filter: blur(10px);
+	transform: translateY(20px);
+	transition: all 1s ease-out;
+}
+
+.hero-animate.blur-in {
+	opacity: 1;
+	filter: blur(0px);
+	transform: translateY(0);
+}
 /* Responsive Design */
 @media (max-width: 1024px) {
 	.navbar {
