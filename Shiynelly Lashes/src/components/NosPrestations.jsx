@@ -1,9 +1,29 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { prestations } from "../../constants/index.js";
 import SpotlightCard from "./SpotlightCard.jsx";
 
 function NosPrestations() {
 	const [openResults, setOpenResults] = useState({});
+	const [isVisible, setIsVisible] = useState(false);
+	const sectionRef = useRef(null);
+
+	useEffect(() => {
+		const observer = new IntersectionObserver(
+			([entry]) => {
+				if (entry.isIntersecting) {
+					setIsVisible(true);
+					observer.unobserve(entry.target);
+				}
+			},
+			{ threshold: 0.1 }
+		);
+
+		if (sectionRef.current) {
+			observer.observe(sectionRef.current);
+		}
+
+		return () => observer.disconnect();
+	}, []);
 
 	const toggleResult = (index) => {
 		setOpenResults((prev) => ({
@@ -12,8 +32,8 @@ function NosPrestations() {
 		}));
 	};
 	return (
-		<section id="nosprestations">
-			<div className="prestations-container">
+		<section id="nosprestations" ref={sectionRef}>
+			<div className={`prestations-container ${isVisible ? "fade-in-up" : ""}`}>
 				<h2>Nos Prestations</h2>
 
 				<div className="prestations-grid">
