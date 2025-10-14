@@ -12,29 +12,31 @@ function NosPrestations() {
 		}));
 	};
 	return (
-		<div className="prestations-container">
-			<h2>Nos Prestations</h2>
-			<div className="prestations-grid">
-				{prestations.map((prestation, index) => (
-					<SpotlightCard key={index} className="prestation-card" spotlightColor="rgba(195, 158, 116, 0.5)">
-						<div className="prestation-content">
-							<h3>{prestation.title}</h3>
-							<p className="prestation-description">{prestation.description}</p>
-							<span className="prestation-price">{prestation.price}</span>
+		<section id="nosprestations">
+			<div className="prestations-container">
+				<h2>Nos Prestations</h2>
+				<div className="prestations-grid">
+					{prestations.map((prestation, index) => (
+						<SpotlightCard key={index} className="prestation-card" spotlightColor="rgba(195, 158, 116, 0.5)">
+							<div className="prestation-content">
+								<h3>{prestation.title}</h3>
+								<p className="prestation-description">{prestation.description}</p>
+								<span className="prestation-price">{prestation.price}</span>
 
-							<button className={`result-toggle ${openResults[index] ? "active" : ""}`} onClick={() => toggleResult(index)}>
-								Résultat
-								<i className={`fas fa-arrow-down arrow-icon ${openResults[index] ? "rotated" : ""}`}></i>
-							</button>
+								<button className={`result-toggle ${openResults[index] ? "active" : ""}`} onClick={() => toggleResult(index)}>
+									Résultat
+									<i className={`fas fa-arrow-down arrow-icon ${openResults[index] ? "rotated" : ""}`}></i>
+								</button>
 
-							<div className={`result-content-wrapper ${openResults[index] ? "show" : ""}`}>
-								<div className="result-text">{prestation.result}</div>
+								<div className={`result-content-wrapper ${openResults[index] ? "show" : ""}`}>
+									<div className="result-text">{prestation.result}</div>
+								</div>
 							</div>
-						</div>
-					</SpotlightCard>
-				))}
+						</SpotlightCard>
+					))}
+				</div>
 			</div>
-		</div>
+		</section>
 	);
 }
 
