@@ -51,16 +51,16 @@ function Footer() {
 							<h4>Navigation</h4>
 							<ul>
 								<li>
-									<a href="#home">Accueil</a>
+									<a href="/">Accueil</a>
 								</li>
 								<li>
-									<a href="#nos-prestations">Nos Prestations</a>
+									<a href="#nosprestations">Nos Prestations</a>
 								</li>
 								<li>
 									<a href="#contact">Contact</a>
 								</li>
 								<li>
-									<a href="#reservation">Réservation</a>
+									<a href="#réservation">Réservation</a>
 								</li>
 							</ul>
 						</div>
@@ -69,19 +69,19 @@ function Footer() {
 							<h4>Services</h4>
 							<ul>
 								<li>
-									<a href="#nos-prestations">Cils à Cils</a>
+									<a href="#nosprestations">Cils à Cils</a>
 								</li>
 								<li>
-									<a href="#nos-prestations">Pose Whispy</a>
+									<a href="#nosprestations">Pose Whispy</a>
 								</li>
 								<li>
-									<a href="#nos-prestations">Pose Russe</a>
+									<a href="#nosprestations">Pose Russe</a>
 								</li>
 								<li>
-									<a href="#nos-prestations">Clusters</a>
+									<a href="#nosprestations">Clusters</a>
 								</li>
 								<li>
-									<a href="#nos-prestations">Dépose</a>
+									<a href="#nosprestations">Dépose</a>
 								</li>
 							</ul>
 						</div>
