@@ -532,6 +532,7 @@ h2 {
 	display: flex;
 	flex-direction: column;
 	gap: 0.5rem;
+	min-width: 0;
 }
 
 .form-group label {
@@ -549,6 +550,8 @@ h2 {
 	font-size: 1rem;
 	font-family: "DM Sans", sans-serif;
 	transition: border-color 0.3s ease, box-shadow 0.3s ease;
+	width: 100%;
+	box-sizing: border-box;
 }
 
 .form-group input:focus,
@@ -560,18 +563,20 @@ h2 {
 }
 
 /* Date Input Styling */
-.date-input-wrapper {
+.date-input-container {
 	position: relative;
+	display: block;
+	width: 100%;
 }
 
-.date-input-wrapper input[type="date"] {
-	padding-right: 2.5rem;
+.date-input-container input[type="date"] {
 	cursor: pointer;
+	width: 100%;
+	box-sizing: border-box;
 }
 
-.calendar-icon {
+.date-calendar-icon {
 	position: absolute;
-	right: 1rem;
 	top: 50%;
 	transform: translateY(-50%);
 	color: #a9734d;
@@ -593,15 +598,19 @@ h2 {
 /* Select Styling */
 .select-wrapper {
 	position: relative;
+	display: block;
+	width: 100%;
 }
 
 .select-wrapper select {
 	appearance: none;
 	-webkit-appearance: none;
 	-moz-appearance: none;
-	padding-right: 1rem;
+	padding-right: 2.5rem;
 	cursor: pointer;
 	background-color: white;
+	width: 100%;
+	box-sizing: border-box;
 }
 
 .select-wrapper select:disabled {
