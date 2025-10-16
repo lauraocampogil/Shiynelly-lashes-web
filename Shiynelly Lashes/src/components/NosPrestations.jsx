@@ -15,7 +15,7 @@ function NosPrestations() {
 					observer.unobserve(entry.target);
 				}
 			},
-			{ threshold: 0.1 }
+			{ threshold: 0.3 }
 		);
 
 		if (sectionRef.current) {
