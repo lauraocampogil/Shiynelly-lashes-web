@@ -1019,6 +1019,9 @@ h2 {
 		gap: 1.5rem;
 	}
 
+	.prestations-grid .prestation-card:nth-child(1),
+	.prestations-grid .prestation-card:nth-child(2),
+	.prestations-grid .prestation-card:nth-child(3),
 	.prestations-grid .prestation-card:nth-child(4),
 	.prestations-grid .prestation-card:nth-child(5) {
 		grid-column: 1;
@@ -1037,7 +1040,7 @@ h2 {
 		min-height: auto;
 	}
 	.booking-container {
-		margin: 2rem 1rem;
+		margin: 0.5rem 0.1rem;
 		padding: 2rem 1.5rem;
 	}
 
