@@ -99,12 +99,20 @@ function BookingForm() {
 		};
 
 		try {
-			// Replace with your EmailJS credentials
+			// Send email to owner
 			await emailjs.send(
-				"YOUR_SERVICE_ID", // Replace with your EmailJS service ID
-				"YOUR_TEMPLATE_ID", // Replace with your EmailJS template ID
+				"service_4t9ude2", // Service ID
+				"template_z26jqp7", // Template ID for OWNER
 				templateParams,
-				"YOUR_PUBLIC_KEY" // Replace with your EmailJS public key
+				"vSn8lOsAhAksc03kS" // Public Key
+			);
+
+			// Send confirmation email to client
+			await emailjs.send(
+				"service_4t9ude2", // Service ID
+				"template_8smxy0b", // Template ID for CLIENT
+				templateParams,
+				"vSn8lOsAhAksc03kS" // Public Key
 			);
 
 			alert("Rendez-vous confirmé! Vous allez recevoir un email de confirmation.");
