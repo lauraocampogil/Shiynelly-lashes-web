@@ -1,13 +1,13 @@
 @import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap");
 @font-face {
 	font-family: "Chetta Vissto";
-	src: url("./assets/fonts/ChettaVissto.otf") format("opentype");
+	src: url("/fonts/ChettaVissto.otf") format("opentype");
 	font-weight: normal;
 	font-style: normal;
 }
 @font-face {
 	font-family: "Gemola";
-	src: url("./assets/fonts/GemolaTTF.ttf") format("opentype");
+	src: url("/fonts/GemolaTTF.ttf") format("opentype");
 	font-weight: normal;
 	font-style: normal;
 }
@@ -313,6 +313,7 @@ body {
 	opacity: 0.9;
 }
 /* NosPrestations Styles */
+
 h2 {
 	font-family: "Gemola", sans-serif;
 	font-size: 3rem;
