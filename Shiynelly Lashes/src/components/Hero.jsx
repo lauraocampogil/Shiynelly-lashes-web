@@ -38,7 +38,7 @@ function Hero() {
 			{/* Hero Content */}
 			<div className="hero-content">
 				<h1 ref={titleRef} className="hero-title hero-animate">
-					Extensions de Cils
+					Shiynelly Lashes
 				</h1>
 				<p ref={subtitleRef} className="hero-subtitle hero-animate">
 					Révélez la beauté de votre regard avec nos extensions de cils sur mesure
