@@ -36,7 +36,7 @@ function Footer() {
 					<div className="footer-main">
 						<div className="footer-section">
 							<h3 className="footer-logo">Shiynelly Lashes</h3>
-							<p className="footer-tagline">Extensions de cils professionnelles</p>
+							<p className="footer-tagline">Extensions de cils</p>
 							<div className="footer-social">
 								<a href="https://www.instagram.com/shiynellylashes/" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
 									<i className="fab fa-instagram"></i>
