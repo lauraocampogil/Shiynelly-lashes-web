@@ -247,21 +247,6 @@ function BookingForm() {
 				</div>
 
 				<div className="form-group">
-					<label htmlFor="date">
-						<i className="far fa-calendar-alt"></i> Date souhaitée (Week-end uniquement)
-					</label>
-					<div className="date-input-container">
-						<input type="date" id="date" name="date" value={formData.date} onChange={handleChange} min={getMinDate()} max={getMaxDate()} className="weekend-only-date" required />
-						<i className="fas date-calendar-icon"></i>
-					</div>
-					{formData.date && !isWeekend(formData.date) && (
-						<p className="error-message">
-							<i className="fas fa-exclamation-circle"></i> Uniquement samedi ou dimanche
-						</p>
-					)}
-				</div>
-
-				<div className="form-group">
 					<label htmlFor="service">
 						<i className="fas fa-sparkles"></i> Service souhaité
 					</label>
@@ -277,6 +262,20 @@ function BookingForm() {
 						<i className="fas fa-chevron-down select-arrow"></i>
 					</div>
 					{formData.service && <p className="service-description">{services.find((s) => s.id === formData.service)?.description}</p>}
+				</div>
+				<div className="form-group">
+					<label htmlFor="date">
+						<i className="far fa-calendar-alt"></i> Date souhaitée (Week-end uniquement)
+					</label>
+					<div className="date-input-container">
+						<input type="date" id="date" name="date" value={formData.date} onChange={handleChange} min={getMinDate()} max={getMaxDate()} className="weekend-only-date" required />
+						<i className="fas date-calendar-icon"></i>
+					</div>
+					{formData.date && !isWeekend(formData.date) && (
+						<p className="error-message">
+							<i className="fas fa-exclamation-circle"></i> Uniquement samedi ou dimanche
+						</p>
+					)}
 				</div>
 
 				<div className="form-row">
