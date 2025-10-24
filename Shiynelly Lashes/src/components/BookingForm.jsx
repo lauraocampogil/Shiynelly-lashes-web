@@ -1,6 +1,8 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import emailjs from "@emailjs/browser";
 import { services } from "../../constants/index.js";
+import { db } from "../../firebase/config.js";
+import { collection, addDoc, query, where, getDocs } from "firebase/firestore";
 
 function BookingForm() {
 	const form = useRef();
@@ -18,41 +20,85 @@ function BookingForm() {
 	const [availableSlots, setAvailableSlots] = useState([]);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
-	const generateTimeSlots = (serviceDuration) => {
+	// Fonction pour vérifier si un créneau est disponible
+	const isSlotAvailable = async (date, startTime, duration) => {
+		try {
+			const [hours, minutes] = startTime.split(":").map(Number);
+			const startMinutes = hours * 60 + minutes;
+			const endMinutes = startMinutes + duration;
+
+			// Récupérer toutes les réservations pour cette date
+			const q = query(collection(db, "reservations"), where("date", "==", date));
+			const querySnapshot = await getDocs(q);
+
+			// Vérifier les conflits
+			for (const doc of querySnapshot.docs) {
+				const booking = doc.data();
+				const [bookingHours, bookingMinutes] = booking.heure.split(":").map(Number);
+				const bookingStart = bookingHours * 60 + bookingMinutes;
+				const bookingEnd = bookingStart + booking.duration;
+
+				// Vérifier si les créneaux se chevauchent
+				if ((startMinutes >= bookingStart && startMinutes < bookingEnd) || (endMinutes > bookingStart && endMinutes <= bookingEnd) || (startMinutes <= bookingStart && endMinutes >= bookingEnd)) {
+					return false;
+				}
+			}
+			return true;
+		} catch (error) {
+			console.error("Erreur lors de la vérification de disponibilité:", error);
+			return false;
+		}
+	};
+
+	const generateTimeSlots = async (serviceDuration, selectedDate) => {
+		if (!selectedDate) return;
+
 		const slots = [];
 		const startMorning = 9 * 60;
 		const endMorning = 12 * 60;
 		const startAfternoon = 13 * 60;
 		const endAfternoon = 19 * 60;
 
+		// Générer tous les créneaux possibles
+		const allSlots = [];
+
 		for (let time = startMorning; time + serviceDuration <= endMorning; time += 30) {
 			const hours = Math.floor(time / 60);
 			const minutes = time % 60;
-			slots.push(`${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`);
+			allSlots.push(`${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`);
 		}
 
 		for (let time = startAfternoon; time + serviceDuration <= endAfternoon; time += 30) {
 			const hours = Math.floor(time / 60);
 			const minutes = time % 60;
-			slots.push(`${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`);
+			allSlots.push(`${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`);
+		}
+
+		// Vérifier la disponibilité de chaque créneau
+		for (const slot of allSlots) {
+			const available = await isSlotAvailable(selectedDate, slot, serviceDuration);
+			if (available) {
+				slots.push(slot);
+			}
 		}
 
 		return slots;
 	};
 
-	const handleServiceChange = (e) => {
+	const handleServiceChange = async (e) => {
 		const serviceId = e.target.value;
 		const selectedService = services.find((s) => s.id === serviceId);
 
 		setFormData({ ...formData, service: serviceId, heure: "" });
+		setAvailableSlots([]);
 
-		if (selectedService) {
-			const slots = generateTimeSlots(selectedService.duration);
+		if (selectedService && formData.date) {
+			const slots = await generateTimeSlots(selectedService.duration, formData.date);
 			setAvailableSlots(slots);
 		}
 	};
 
-	const handleChange = (e) => {
+	const handleChange = async (e) => {
 		const { name, value } = e.target;
 
 		// Validate date is weekend when date changes
@@ -60,6 +106,13 @@ function BookingForm() {
 			if (!isWeekend(value)) {
 				alert("Veuillez sélectionner uniquement un samedi ou un dimanche");
 				return;
+			}
+
+			// Régénérer les créneaux si un service est déjà sélectionné
+			if (formData.service) {
+				const selectedService = services.find((s) => s.id === formData.service);
+				const slots = await generateTimeSlots(selectedService.duration, value);
+				setAvailableSlots(slots);
 			}
 		}
 
@@ -84,36 +137,55 @@ function BookingForm() {
 
 		const selectedService = services.find((s) => s.id === formData.service);
 
-		// EmailJS template parameters
-		const templateParams = {
-			to_name: formData.prenom,
-			from_name: `${formData.prenom} ${formData.nom}`,
-			client_email: formData.email,
-			client_phone: formData.telephone,
-			service_name: `${selectedService.name} - ${selectedService.price}`,
-			appointment_date: new Date(formData.date).toLocaleDateString("fr-FR", { weekday: "long", year: "numeric", month: "long", day: "numeric" }),
-			appointment_time: formData.heure,
-			comments: formData.commentaires || "Aucun",
-			address: "60 bd Pasteur 94260 - Sonner à Demoniere, prendre le 2ème ascenseur près des escaliers, sortir à gauche, sonner porte L",
-			instructions: "Venez avec les cils propres et démaquillés. Attention : présence de deux chats au domicile.",
-		};
+		// Vérifier une dernière fois la disponibilité
+		const available = await isSlotAvailable(formData.date, formData.heure, selectedService.duration);
+		if (!available) {
+			alert("Désolé, ce créneau vient d'être réservé. Veuillez en choisir un autre.");
+			setIsSubmitting(false);
+			// Régénérer les créneaux disponibles
+			const slots = await generateTimeSlots(selectedService.duration, formData.date);
+			setAvailableSlots(slots);
+			return;
+		}
 
 		try {
-			// Send email to owner
-			await emailjs.send(
-				"service_4t9ude2", // Service ID
-				"template_z26jqp7", // Template ID for OWNER
-				templateParams,
-				"vSn8lOsAhAksc03kS" // Public Key
-			);
+			// Sauvegarder la réservation dans Firebase
+			await addDoc(collection(db, "reservations"), {
+				prenom: formData.prenom,
+				nom: formData.nom,
+				email: formData.email,
+				telephone: formData.telephone,
+				service: selectedService.name,
+				serviceId: formData.service,
+				date: formData.date,
+				heure: formData.heure,
+				duration: selectedService.duration,
+				commentaires: formData.commentaires,
+				timestamp: new Date(),
+			});
 
-			// Send confirmation email to client
-			await emailjs.send(
-				"service_4t9ude2", // Service ID
-				"template_8smxy0b", // Template ID for CLIENT
-				templateParams,
-				"vSn8lOsAhAksc03kS" // Public Key
-			);
+			// EmailJS template parameters
+			const templateParams = {
+				to_name: formData.prenom,
+				from_name: `${formData.prenom} ${formData.nom}`,
+				client_email: formData.email,
+				client_phone: formData.telephone,
+				service_name: `${selectedService.name} - ${selectedService.price}`,
+				appointment_date: new Date(formData.date).toLocaleDateString("fr-FR", {
+					weekday: "long",
+					year: "numeric",
+					month: "long",
+					day: "numeric",
+				}),
+				appointment_time: formData.heure,
+				comments: formData.commentaires || "Aucun",
+				address: "60 bd Pasteur 94260 - Sonner à Demoniere, prendre le 2ème ascenseur près des escaliers, sortir à gauche, sonner porte L",
+				instructions: "Venez avec les cils propres et démaquillés. Attention : présence de deux chats au domicile.",
+			};
+
+			// Send emails
+			await emailjs.send("service_4t9ude2", "template_z26jqp7", templateParams, "vSn8lOsAhAksc03kS");
+			await emailjs.send("service_4t9ude2", "template_8smxy0b", templateParams, "vSn8lOsAhAksc03kS");
 
 			alert("Rendez-vous confirmé! Vous allez recevoir un email de confirmation.");
 
@@ -130,7 +202,7 @@ function BookingForm() {
 			});
 			setAvailableSlots([]);
 		} catch (error) {
-			console.error("EmailJS Error:", error);
+			console.error("Erreur:", error);
 			alert("Une erreur est survenue. Veuillez réessayer.");
 		} finally {
 			setIsSubmitting(false);
@@ -151,6 +223,7 @@ function BookingForm() {
 	return (
 		<div className="booking-container" id="reservation">
 			<form ref={form} onSubmit={handleSubmit} className="booking-form">
+				{/* ... reste du JSX identique ... */}
 				<div className="form-row">
 					<div className="form-group">
 						<label htmlFor="prenom">Prénom </label>
@@ -174,6 +247,21 @@ function BookingForm() {
 				</div>
 
 				<div className="form-group">
+					<label htmlFor="date">
+						<i className="far fa-calendar-alt"></i> Date souhaitée (Week-end uniquement)
+					</label>
+					<div className="date-input-container">
+						<input type="date" id="date" name="date" value={formData.date} onChange={handleChange} min={getMinDate()} max={getMaxDate()} className="weekend-only-date" required />
+						<i className="fas date-calendar-icon"></i>
+					</div>
+					{formData.date && !isWeekend(formData.date) && (
+						<p className="error-message">
+							<i className="fas fa-exclamation-circle"></i> Uniquement samedi ou dimanche
+						</p>
+					)}
+				</div>
+
+				<div className="form-group">
 					<label htmlFor="service">
 						<i className="fas fa-sparkles"></i> Service souhaité
 					</label>
@@ -193,27 +281,12 @@ function BookingForm() {
 
 				<div className="form-row">
 					<div className="form-group">
-						<label htmlFor="date">
-							<i className="far fa-calendar-alt"></i> Date souhaitée (Week-end uniquement)
-						</label>
-						<div className="date-input-container">
-							<input type="date" id="date" name="date" value={formData.date} onChange={handleChange} min={getMinDate()} max={getMaxDate()} className="weekend-only-date" required />
-							<i className="fas date-calendar-icon"></i>
-						</div>
-						{formData.date && !isWeekend(formData.date) && (
-							<p className="error-message">
-								<i className="fas fa-exclamation-circle"></i> Uniquement samedi ou dimanche
-							</p>
-						)}
-					</div>
-
-					<div className="form-group">
 						<label htmlFor="heure">
 							<i className="far fa-clock"></i> Heure préférée
 						</label>
 						<div className="select-wrapper">
-							<select id="heure" name="heure" value={formData.heure} onChange={handleChange} disabled={!formData.service} required>
-								<option value="">Choisir un créneau</option>
+							<select id="heure" name="heure" value={formData.heure} onChange={handleChange} disabled={!formData.service || !formData.date || availableSlots.length === 0} required>
+								<option value="">{!formData.date ? "Choisir d'abord une date" : !formData.service ? "Choisir d'abord un service" : availableSlots.length === 0 ? "Aucun créneau disponible" : "Choisir un créneau"}</option>
 								{availableSlots.map((slot) => (
 									<option key={slot} value={slot}>
 										{slot}
