@@ -371,7 +371,7 @@ h2 {
 }
 
 .prestation-card h3 {
-	font-family: "Gemola", sans-serif;
+	font-family: "Gemola, sans-serif";
 	font-size: 1.8rem;
 	color: #312019;
 	margin-bottom: 1rem;
@@ -1050,7 +1050,7 @@ h2 {
 
 	.prestation-card h3 {
 		font-size: 1.5rem;
-		font-family: "Gemola, sans-serif";
+		font-family: "Gemola", sans-serif;
 	}
 
 	.prestation-description {
