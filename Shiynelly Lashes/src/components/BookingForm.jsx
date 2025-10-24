@@ -304,7 +304,7 @@ function BookingForm() {
 
 				<div className="info-box">
 					<h4>
-						<i className="fas fa-info-circle"></i> Informations importantes :
+						<i className="fas fa-info-circle"></i> Informations importantes:
 					</h4>
 					<ul>
 						<li>Venez avec les cils propres et démaquillés</li>
