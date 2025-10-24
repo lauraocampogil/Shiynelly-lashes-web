@@ -55,8 +55,8 @@ function BookingForm() {
 
 		const slots = [];
 		const startMorning = 9 * 60;
-		const endMorning = 12 * 60;
-		const startAfternoon = 13 * 60;
+		const endMorning = 13.5 * 60;
+		const startAfternoon = 14 * 60;
 		const endAfternoon = 19 * 60;
 
 		// Générer tous les créneaux possibles
