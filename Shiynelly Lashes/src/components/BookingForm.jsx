@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import emailjs from "@emailjs/browser";
 import { services } from "../../constants/index.js";
-import { db } from "../../firebase/config.js";
+import { db } from "../firebase/config.js";
 import { collection, addDoc, query, where, getDocs } from "firebase/firestore";
 
 function BookingForm() {
