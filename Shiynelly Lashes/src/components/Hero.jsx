@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import Silk from "../components/Silk.jsx";
+import { logAnalyticsEvent } from "../firebase/config.js";
 
 function Hero() {
 	const titleRef = useRef(null);
@@ -22,6 +23,12 @@ function Hero() {
 	}, []);
 
 	const handleReservationClick = () => {
+		// TRACKING - Clic sur le bouton CTA principal
+		logAnalyticsEvent("cta_clicked", {
+			button_location: "hero",
+			button_text: "Prendre Rendez-vous",
+		});
+
 		const element = document.querySelector("#réservation");
 		if (element) {
 			element.scrollIntoView({ behavior: "smooth" });

@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import emailjs from "@emailjs/browser";
 import { services } from "../../constants/index.js";
-import { db } from "../firebase/config.js";
+import { db, logAnalyticsEvent } from "../firebase/config.js";
 import { collection, addDoc, query, where, getDocs } from "firebase/firestore";
 
 function BookingForm() {
@@ -89,6 +89,14 @@ function BookingForm() {
 		const serviceId = e.target.value;
 		const selectedService = services.find((s) => s.id === serviceId);
 
+		// TRACKING
+		if (selectedService) {
+			logAnalyticsEvent("service_selected", {
+				service_name: selectedService.name,
+				service_price: selectedService.price,
+			});
+		}
+
 		setFormData({ ...formData, service: serviceId, heure: "" });
 		setAvailableSlots([]);
 
@@ -107,6 +115,11 @@ function BookingForm() {
 				alert("Veuillez sélectionner uniquement un samedi ou un dimanche");
 				return;
 			}
+
+			// TRACKING
+			logAnalyticsEvent("date_selected", {
+				selected_date: value,
+			});
 
 			// Régénérer les créneaux si un service est déjà sélectionné
 			if (formData.service) {
@@ -137,9 +150,23 @@ function BookingForm() {
 
 		const selectedService = services.find((s) => s.id === formData.service);
 
+		// TRACKING - Tentative de réservation
+		logAnalyticsEvent("booking_started", {
+			service: selectedService.name,
+			service_price: selectedService.price,
+			date: formData.date,
+		});
+
 		// Vérifier une dernière fois la disponibilité
 		const available = await isSlotAvailable(formData.date, formData.heure, selectedService.duration);
 		if (!available) {
+			// TRACKING - Créneau déjà pris
+			logAnalyticsEvent("booking_slot_unavailable", {
+				service: selectedService.name,
+				requested_date: formData.date,
+				requested_time: formData.heure,
+			});
+
 			alert("Désolé, ce créneau vient d'être réservé. Veuillez en choisir un autre.");
 			setIsSubmitting(false);
 			// Régénérer les créneaux disponibles
@@ -187,6 +214,30 @@ function BookingForm() {
 			await emailjs.send("service_4t9ude2", "template_z26jqp7", templateParams, "vSn8lOsAhAksc03kS");
 			await emailjs.send("service_4t9ude2", "template_8smxy0b", templateParams, "vSn8lOsAhAksc03kS");
 
+			// TRACKING - Réservation réussie (ÉVÉNEMENT DE CONVERSION PRINCIPAL)
+			logAnalyticsEvent("purchase", {
+				transaction_id: `booking_${Date.now()}`,
+				value: parseFloat(selectedService.price.replace("€", "")),
+				currency: "EUR",
+				items: [
+					{
+						item_id: selectedService.id,
+						item_name: selectedService.name,
+						price: parseFloat(selectedService.price.replace("€", "")),
+					},
+				],
+			});
+
+			// TRACKING - Événement personnalisé de réservation complétée
+			logAnalyticsEvent("booking_completed", {
+				service_name: selectedService.name,
+				service_id: selectedService.id,
+				service_price: selectedService.price,
+				booking_date: formData.date,
+				booking_time: formData.heure,
+				client_email: formData.email,
+			});
+
 			alert("Rendez-vous confirmé! Vous allez recevoir un email de confirmation.");
 
 			// Reset form
@@ -203,6 +254,15 @@ function BookingForm() {
 			setAvailableSlots([]);
 		} catch (error) {
 			console.error("Erreur:", error);
+
+			// TRACKING - Erreur lors de la réservation
+			logAnalyticsEvent("booking_error", {
+				error_message: error.message,
+				service: selectedService.name,
+				date: formData.date,
+				time: formData.heure,
+			});
+
 			alert("Une erreur est survenue. Veuillez réessayer.");
 		} finally {
 			setIsSubmitting(false);

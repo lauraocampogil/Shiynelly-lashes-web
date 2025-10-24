@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { prestations } from "../../constants/index.js";
 import SpotlightCard from "./SpotlightCard.jsx";
+import { logAnalyticsEvent } from "../firebase/config.js";
 
 function NosPrestations() {
 	const [openResults, setOpenResults] = useState({});
@@ -24,8 +25,18 @@ function NosPrestations() {
 
 		return () => observer.disconnect();
 	}, []);
-
 	const toggleResult = (index) => {
+		const isOpening = !openResults[index];
+
+		// TRACKING - Quand quelqu'un ouvre les détails d'un service
+		if (isOpening) {
+			logAnalyticsEvent("service_details_viewed", {
+				service_name: prestations[index].title,
+				service_price: prestations[index].price,
+				service_index: index,
+			});
+		}
+
 		setOpenResults((prev) => ({
 			...prev,
 			[index]: !prev[index],

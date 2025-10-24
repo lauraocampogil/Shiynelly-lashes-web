@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { logAnalyticsEvent } from "../firebase/config.js";
 
 function Footer() {
 	const footerRef = useRef(null);
@@ -38,10 +39,32 @@ function Footer() {
 							<h3 className="footer-logo">Shiynelly Lashes</h3>
 							<p className="footer-tagline">Extensions de cils</p>
 							<div className="footer-social">
-								<a href="https://www.instagram.com/shiynellylashes/" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+								<a
+									href="https://www.instagram.com/shiynellylashes/"
+									onClick={() => {
+										logAnalyticsEvent("social_click", {
+											platform: "instagram",
+											location: "footer",
+										});
+									}}
+									target="_blank"
+									rel="noopener noreferrer"
+									aria-label="Instagram"
+								>
 									<i className="fab fa-instagram"></i>
 								</a>
-								<a href="https://www.tiktok.com/@shiynellylashes" target="_blank" rel="noopener noreferrer" aria-label="TikTok">
+								<a
+									href="https://www.tiktok.com/@shiynellylashes"
+									onClick={() => {
+										logAnalyticsEvent("social_click", {
+											platform: "tiktok",
+											location: "footer",
+										});
+									}}
+									target="_blank"
+									rel="noopener noreferrer"
+									aria-label="TikTok"
+								>
 									<i className="fab fa-tiktok"></i>
 								</a>
 							</div>
