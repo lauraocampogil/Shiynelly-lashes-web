@@ -49,9 +49,40 @@ function BookingForm() {
 			return false;
 		}
 	};
+	// Vérifier si une date est complètement bloquée
+	const isDateBlocked = async (date) => {
+		try {
+			const q = query(collection(db, "blockedDates"), where("date", "==", date), where("allDay", "==", true));
+			const querySnapshot = await getDocs(q);
+			return !querySnapshot.empty;
+		} catch (error) {
+			console.error("Erreur vérification date bloquée:", error);
+			return false;
+		}
+	};
 
+	// Récupérer les heures bloquées pour une date
+	const getBlockedHours = async (date) => {
+		try {
+			const q = query(collection(db, "blockedDates"), where("date", "==", date), where("allDay", "==", false));
+			const querySnapshot = await getDocs(q);
+
+			let blockedHours = [];
+			querySnapshot.forEach((doc) => {
+				const data = doc.data();
+				if (data.blockedHours && Array.isArray(data.blockedHours)) {
+					blockedHours = [...blockedHours, ...data.blockedHours];
+				}
+			});
+
+			return blockedHours;
+		} catch (error) {
+			console.error("Erreur récupération heures bloquées:", error);
+			return [];
+		}
+	};
 	const generateTimeSlots = async (serviceDuration, selectedDate) => {
-		if (!selectedDate) return;
+		if (!selectedDate) return [];
 
 		const slots = [];
 		const startMorning = 9 * 60;
@@ -59,22 +90,31 @@ function BookingForm() {
 		const startAfternoon = 14 * 60;
 		const endAfternoon = 19 * 60;
 
-		// Générer tous les créneaux possibles
+		// Récupérer les heures bloquées pour cette date
+		const blockedHours = await getBlockedHours(selectedDate);
+
 		const allSlots = [];
 
 		for (let time = startMorning; time + serviceDuration <= endMorning; time += 30) {
 			const hours = Math.floor(time / 60);
 			const minutes = time % 60;
-			allSlots.push(`${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`);
+			const slot = `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`;
+
+			if (!blockedHours.includes(slot)) {
+				allSlots.push(slot);
+			}
 		}
 
 		for (let time = startAfternoon; time + serviceDuration <= endAfternoon; time += 30) {
 			const hours = Math.floor(time / 60);
 			const minutes = time % 60;
-			allSlots.push(`${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`);
+			const slot = `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`;
+
+			if (!blockedHours.includes(slot)) {
+				allSlots.push(slot);
+			}
 		}
 
-		// Vérifier la disponibilité de chaque créneau
 		for (const slot of allSlots) {
 			const available = await isSlotAvailable(selectedDate, slot, serviceDuration);
 			if (available) {
@@ -109,19 +149,23 @@ function BookingForm() {
 	const handleChange = async (e) => {
 		const { name, value } = e.target;
 
-		// Validate date is weekend when date changes
 		if (name === "date" && value) {
 			if (!isWeekend(value)) {
 				alert("Veuillez sélectionner uniquement un samedi ou un dimanche");
 				return;
 			}
 
-			// TRACKING
+			// NOUVEAU: Vérifier si la date est bloquée
+			const blocked = await isDateBlocked(value);
+			if (blocked) {
+				alert("Cette date n'est pas disponible. Veuillez choisir une autre date.");
+				return;
+			}
+
 			logAnalyticsEvent("date_selected", {
 				selected_date: value,
 			});
 
-			// Régénérer les créneaux si un service est déjà sélectionné
 			if (formData.service) {
 				const selectedService = services.find((s) => s.id === formData.service);
 				const slots = await generateTimeSlots(selectedService.duration, value);

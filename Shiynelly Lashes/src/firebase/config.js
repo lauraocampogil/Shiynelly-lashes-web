@@ -1,6 +1,7 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
-import { getAnalytics, logEvent } from "firebase/analytics";
+import { getAnalytics, logEvent, isSupported } from "firebase/analytics";
+import { getAuth } from "firebase/auth"; 
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -13,12 +14,24 @@ const firebaseConfig = {
 	measurementId: "G-FR2YC35HHN",
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
-export const analytics = getAnalytics(app);
+export const auth = getAuth(app); // NOUVEAU
 
-// Fonction helper pour logger des événements
+// Analytics (code existant)
+let analytics = null;
+isSupported().then((yes) => {
+	if (yes) {
+		analytics = getAnalytics(app);
+	}
+});
+
 export const logAnalyticsEvent = (eventName, eventParams = {}) => {
-	logEvent(analytics, eventName, eventParams);
+	try {
+		if (analytics) {
+			logEvent(analytics, eventName, eventParams);
+		}
+	} catch (error) {
+		console.warn("Analytics event failed:", error);
+	}
 };
