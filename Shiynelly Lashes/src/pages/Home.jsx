@@ -1,4 +1,4 @@
-import { logAnalyticsEvent } from "./firebase/config.js";
+import { logAnalyticsEvent } from "../firebase/config.js";
 import { useEffect } from "react";
 import Navbar from "../components/Navbar.jsx";
 import Hero from "../components/Hero.jsx";
