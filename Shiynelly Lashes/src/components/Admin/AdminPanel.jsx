@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { signOut, onAuthStateChanged } from "firebase/auth";
 import { auth } from "../../firebase/config.js";
-import AdminLogin from "./AdminLogin";
-import BookingsList from "./BookingsList";
-import BlockedDatesManager from "./BlockedDatesManager";
+import AdminLogin from "./AdminLogin.jsx";
+import BookingsList from "./BookingsList.jsx";
+import BlockedDatesManager from "./BlockedDatesManager.jsx";
 import "./AdminPanel.css";
 
 function AdminPanel() {
