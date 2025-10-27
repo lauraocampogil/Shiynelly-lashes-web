@@ -39,7 +39,7 @@ function AdminPanel() {
 	return (
 		<div className="admin-panel">
 			<header className="admin-header">
-				<h1>👑 Admin Panel - Shiynelly Lashes</h1>
+				<h1>Admin Panel - Shiynelly Lashes</h1>
 				<div className="admin-nav">
 					<button className={`nav-btn ${activeTab === "bookings" ? "active" : ""}`} onClick={() => setActiveTab("bookings")}>
 						📅 Réservations
