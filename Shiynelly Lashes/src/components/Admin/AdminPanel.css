@@ -101,7 +101,7 @@
 	gap: 10px;
 }
 
-.nav-button {
+.nav-btn {
 	padding: 10px 20px;
 	border: none;
 	background: #f0f0f0;
@@ -110,7 +110,7 @@
 	transition: all 0.3s;
 }
 
-.nav-button.active {
+.nav-btn.active {
 	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 	color: white;
 }
@@ -281,7 +281,7 @@
 	border-color: #667eea;
 }
 
-.submit-button {
+.submit-btn {
 	width: 100%;
 	padding: 14px;
 	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -294,7 +294,7 @@
 	transition: transform 0.2s;
 }
 
-.submit-button:hover {
+.submit-btn:hover {
 	transform: translateY(-2px);
 }
 

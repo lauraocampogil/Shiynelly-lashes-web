@@ -41,10 +41,10 @@ function AdminPanel() {
 			<header className="admin-header">
 				<h1>👑 Admin Panel - Shiynelly Lashes</h1>
 				<div className="admin-nav">
-					<button className={`nav-button ${activeTab === "bookings" ? "active" : ""}`} onClick={() => setActiveTab("bookings")}>
+					<button className={`nav-btn ${activeTab === "bookings" ? "active" : ""}`} onClick={() => setActiveTab("bookings")}>
 						📅 Réservations
 					</button>
-					<button className={`nav-button ${activeTab === "blocked" ? "active" : ""}`} onClick={() => setActiveTab("blocked")}>
+					<button className={`nav-btn ${activeTab === "blocked" ? "active" : ""}`} onClick={() => setActiveTab("blocked")}>
 						🔒 Dates Bloquées
 					</button>
 					<button onClick={handleLogout} className="logout-button">
