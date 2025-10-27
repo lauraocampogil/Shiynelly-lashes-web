@@ -102,3 +102,44 @@ exports.deleteCalendarEvent = functions.firestore.document("reservations/{reserv
 		return null;
 	}
 });
+const emailjs = require("@emailjs/nodejs");
+
+// Fonction pour envoyer un email d'annulation
+exports.sendCancellationEmail = functions.firestore.document("reservations/{reservationId}").onDelete(async (snap, _context) => {
+	const reservation = snap.data();
+
+	try {
+		// Template parameters pour l'email d'annulation
+		const templateParams = {
+			to_name: reservation.prenom,
+			from_name: "Shiynelly Lashes",
+			client_email: reservation.email,
+			service_name: reservation.service,
+			appointment_date: new Date(reservation.date).toLocaleDateString("fr-FR", {
+				weekday: "long",
+				year: "numeric",
+				month: "long",
+				day: "numeric",
+			}),
+			appointment_time: reservation.heure,
+			booking_link: "https://shiynellylashes.com/#réservation",
+		};
+
+		// Envoyer l'email d'annulation
+		await emailjs.send(
+			"service_4t9ude2", // Votre Service ID
+			"template_XXXXX", // NOUVEAU Template ID pour annulation (à créer)
+			templateParams,
+			{
+				publicKey: "vSn8lOsAhAksc03kS",
+				privateKey: "VOTRE_PRIVATE_KEY", // À ajouter depuis EmailJS
+			}
+		);
+
+		console.log("Email d'annulation envoyé à:", reservation.email);
+		return null;
+	} catch (error) {
+		console.error("Erreur envoi email d'annulation:", error);
+		return null;
+	}
+});
