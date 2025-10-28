@@ -6,6 +6,8 @@ admin.initializeApp();
 
 const CALENDAR_ID = "studiobynelly@gmail.com";
 const SERVICE_ACCOUNT_EMAIL = "shiynelly-calendar-service@shiynelly-lashes.iam.gserviceaccount.com";
+
+// Clé privée avec les vrais retours à la ligne
 const PRIVATE_KEY = `-----BEGIN PRIVATE KEY-----
 MIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQDKM/rQ4A09Kv2F
 qo0ZQYXdpMAv/VUZXvi5XCUBb9ok4qG4Qd3i+l3iFma9BU1Y3/7YaqKsblIi8wqy
@@ -35,17 +37,17 @@ UDQGrBOEaUMjH7VHe+I50IGDHSsuNbEZdsWR7nWBle94CR2mxgPuXXM+P0W2ngmt
 +FNkVO9xcIz1wDoXHHdy4A==
 -----END PRIVATE KEY-----`;
 
-// Créer le client Google Calendar
-const auth = new google.auth.JWT(SERVICE_ACCOUNT_EMAIL, null, PRIVATE_KEY, ["https://www.googleapis.com/auth/calendar"]);
+// Créer le client JWT avec la clé
+const jwtClient = new google.auth.JWT(SERVICE_ACCOUNT_EMAIL, null, PRIVATE_KEY, ["https://www.googleapis.com/auth/calendar"]);
 
-const calendar = google.calendar({ version: "v3", auth });
+const calendar = google.calendar({ version: "v3", auth: jwtClient });
 
-// Fonction déclenchée quand une réservation est créée
-exports.createCalendarEvent = functions.firestore.document("reservations/{reservationId}").onCreate(async (snap, _context) => {
+// Fonction: Créer un événement dans le calendrier
+exports.createCalendarEvent = functions.firestore.document("reservations/{reservationId}").onCreate(async (snap, context) => {
 	const reservation = snap.data();
 
 	try {
-		// Convertir la date et l'heure en format ISO
+		// Convertir la date et l'heure
 		const [hours, minutes] = reservation.heure.split(":");
 		const startDate = new Date(reservation.date + "T00:00:00");
 		startDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
@@ -64,7 +66,7 @@ exports.createCalendarEvent = functions.firestore.document("reservations/{reserv
 - Venez avec les cils propres et démaquillés
 - Attention : présence de deux chats au domicile
 
-📍 Adresse: 60 bd Pasteur 94260
+📍 Adresse: 60 bd Pasteur 94260 Fresnes
 Sonner à Demoniere, prendre le 2ème ascenseur près des escaliers, sortir à gauche, sonner porte L
         `,
 			start: {
@@ -75,7 +77,12 @@ Sonner à Demoniere, prendre le 2ème ascenseur près des escaliers, sortir à g
 				dateTime: endDate.toISOString(),
 				timeZone: "Europe/Paris",
 			},
-			attendees: [{ email: reservation.email, displayName: `${reservation.prenom} ${reservation.nom}` }],
+			attendees: [
+				{
+					email: reservation.email,
+					displayName: `${reservation.prenom} ${reservation.nom}`,
+				},
+			],
 			reminders: {
 				useDefault: false,
 				overrides: [
@@ -86,13 +93,15 @@ Sonner à Demoniere, prendre le 2ème ascenseur près des escaliers, sortir à g
 			colorId: "9",
 		};
 
+		console.log("🔄 Tentative de création d'événement...");
+
 		const response = await calendar.events.insert({
 			calendarId: CALENDAR_ID,
 			resource: event,
 			sendUpdates: "all",
 		});
 
-		console.log("Événement créé:", response.data.htmlLink);
+		console.log("✅ Événement créé:", response.data.htmlLink);
 
 		await snap.ref.update({
 			calendarEventId: response.data.id,
@@ -101,15 +110,18 @@ Sonner à Demoniere, prendre le 2ème ascenseur près des escaliers, sortir à g
 
 		return response.data;
 	} catch (error) {
-		console.error("Erreur création événement:", error);
+		console.error("❌ Erreur création événement:", error.message);
+		console.error("❌ Détails:", JSON.stringify(error, null, 2));
 		return null;
 	}
 });
 
-exports.deleteCalendarEvent = functions.firestore.document("reservations/{reservationId}").onDelete(async (snap, _context) => {
+// Fonction: Supprimer un événement du calendrier
+exports.deleteCalendarEvent = functions.firestore.document("reservations/{reservationId}").onDelete(async (snap, context) => {
 	const reservation = snap.data();
 
 	if (!reservation.calendarEventId) {
+		console.log("Pas d'ID événement calendar à supprimer");
 		return null;
 	}
 
@@ -117,14 +129,12 @@ exports.deleteCalendarEvent = functions.firestore.document("reservations/{reserv
 		await calendar.events.delete({
 			calendarId: CALENDAR_ID,
 			eventId: reservation.calendarEventId,
-			sendUpdates: "all",
 		});
 
-		console.log("Événement supprimé");
+		console.log("✅ Événement supprimé du calendrier");
 		return null;
 	} catch (error) {
-		console.error("Erreur suppression:", error);
+		console.error("❌ Erreur suppression événement:", error.message);
 		return null;
 	}
 });
-const emailjs = require("@emailjs/nodejs");

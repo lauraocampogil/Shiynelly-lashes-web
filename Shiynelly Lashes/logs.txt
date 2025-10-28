@@ -1,0 +1,15 @@
+2025-10-28T22:25:33.580845Z ? createCalendarEvent:     paramsSerializer: [Function (anonymous)],
+2025-10-28T22:25:33.580848Z ? createCalendarEvent:     data: {
+2025-10-28T22:25:33.580856Z ? createCalendarEvent:       summary: 'Pose Whispy  - Laura Ocampo',
+2025-10-28T22:25:33.580860Z ? createCalendarEvent:       description: '\n' +
+2025-10-28T22:25:33.580864Z ? createCalendarEvent:         '📱 Téléphone: 0486899058\n' +
+2025-10-28T22:25:33.580867Z ? createCalendarEvent:         '📧 Email: lolasocampo@gmail.com\n' +
+2025-10-28T22:25:33.580871Z ? createCalendarEvent:         '💬 Commentaires: Aucun\n' +
+2025-10-28T22:25:33.580874Z ? createCalendarEvent:         '\n' +
+2025-10-28T22:25:33.580877Z ? createCalendarEvent:         '⚠️ Informations importantes:\n' +
+2025-10-28T22:25:33.580893Z ? createCalendarEvent:         '- Venez avec les cils propres et démaquillés\n' +
+2025-10-28T22:25:33.580903Z ? createCalendarEvent:         '- Attention : présence de deux chats au domicile\n' +
+2025-10-28T22:25:33.580906Z ? createCalendarEvent:         '\n' +
+2025-10-28T22:25:33.580908Z ? createCalendarEvent:         '📍 Adresse: 60 bd Pasteur 94260\n' +
+2025-10-28T22:25:33.580911Z ? createCalendarEvent:         'Sonner à Demoniere, prendre le 2ème ascenseur près des escaliers, sortir à gauche, sonner porte L\n' +
+2025-10-28T22:25:33.580913Z ? createCalendarEvent:         '        ',
