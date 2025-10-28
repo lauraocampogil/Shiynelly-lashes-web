@@ -17,28 +17,31 @@ const jwtClient = new google.auth.JWT(serviceAccount.client_email, null, service
 const calendar = google.calendar({ version: "v3", auth: jwtClient });
 
 // Fonction: Créer un événement dans le calendrier
-exports.createCalendarEvent = functions.firestore.document("reservations/{reservationId}").onCreate(async (snap, context) => {
-	const reservation = snap.data();
+exports.createCalendarEvent = functions
+	.runWith({ timeoutSeconds: 540, memory: "512MB" })
+	.firestore.document("reservations/{reservationId}")
+	.onCreate(async (snap, context) => {
+		const reservation = snap.data();
 
-	try {
-		console.log("🔄 Démarrage création événement...");
-		console.log("📧 Service Account Email:", serviceAccount.client_email);
-		console.log("📅 Calendar ID:", CALENDAR_ID);
+		try {
+			console.log("🔄 Démarrage création événement...");
+			console.log("📧 Service Account Email:", serviceAccount.client_email);
+			console.log("📅 Calendar ID:", CALENDAR_ID);
 
-		// Convertir la date et l'heure
-		const [hours, minutes] = reservation.heure.split(":");
-		const startDate = new Date(reservation.date + "T00:00:00");
-		startDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+			// Convertir la date et l'heure
+			const [hours, minutes] = reservation.heure.split(":");
+			const startDate = new Date(reservation.date + "T00:00:00");
+			startDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
 
-		const endDate = new Date(startDate);
-		endDate.setMinutes(endDate.getMinutes() + reservation.duration);
+			const endDate = new Date(startDate);
+			endDate.setMinutes(endDate.getMinutes() + reservation.duration);
 
-		console.log("🕐 Start:", startDate.toISOString());
-		console.log("🕐 End:", endDate.toISOString());
+			console.log("🕐 Start:", startDate.toISOString());
+			console.log("🕐 End:", endDate.toISOString());
 
-		const event = {
-			summary: `${reservation.service} - ${reservation.prenom} ${reservation.nom}`,
-			description: `
+			const event = {
+				summary: `${reservation.service} - ${reservation.prenom} ${reservation.nom}`,
+				description: `
 📱 Téléphone: ${reservation.telephone}
 📧 Email: ${reservation.email}
 💬 Commentaires: ${reservation.commentaires || "Aucun"}
@@ -50,57 +53,57 @@ exports.createCalendarEvent = functions.firestore.document("reservations/{reserv
 📍 Adresse: 60 bd Pasteur 94260 Fresnes
 Sonner à Demoniere, prendre le 2ème ascenseur près des escaliers, sortir à gauche, sonner porte L
         `,
-			start: {
-				dateTime: startDate.toISOString(),
-				timeZone: "Europe/Paris",
-			},
-			end: {
-				dateTime: endDate.toISOString(),
-				timeZone: "Europe/Paris",
-			},
-			attendees: [
-				{
-					email: reservation.email,
-					displayName: `${reservation.prenom} ${reservation.nom}`,
+				start: {
+					dateTime: startDate.toISOString(),
+					timeZone: "Europe/Paris",
 				},
-			],
-			reminders: {
-				useDefault: false,
-				overrides: [
-					{ method: "email", minutes: 24 * 60 },
-					{ method: "popup", minutes: 60 },
+				end: {
+					dateTime: endDate.toISOString(),
+					timeZone: "Europe/Paris",
+				},
+				attendees: [
+					{
+						email: reservation.email,
+						displayName: `${reservation.prenom} ${reservation.nom}`,
+					},
 				],
-			},
-			colorId: "9",
-		};
+				reminders: {
+					useDefault: false,
+					overrides: [
+						{ method: "email", minutes: 24 * 60 },
+						{ method: "popup", minutes: 60 },
+					],
+				},
+				colorId: "9",
+			};
 
-		console.log("📤 Envoi de la requête à Google Calendar...");
+			console.log("📤 Envoi de la requête à Google Calendar...");
 
-		const response = await calendar.events.insert({
-			calendarId: CALENDAR_ID,
-			resource: event,
-			sendUpdates: "all",
-		});
+			const response = await calendar.events.insert({
+				calendarId: CALENDAR_ID,
+				resource: event,
+				sendUpdates: "all",
+			});
 
-		console.log("✅ SUCCÈS! Événement créé:", response.data.htmlLink);
+			console.log("✅ SUCCÈS! Événement créé:", response.data.htmlLink);
 
-		await snap.ref.update({
-			calendarEventId: response.data.id,
-			calendarEventLink: response.data.htmlLink,
-		});
+			await snap.ref.update({
+				calendarEventId: response.data.id,
+				calendarEventLink: response.data.htmlLink,
+			});
 
-		return response.data;
-	} catch (error) {
-		console.error("❌ ERREUR COMPLÈTE:", error);
-		console.error("❌ Message:", error.message);
-		console.error("❌ Code:", error.code);
-		if (error.response) {
-			console.error("❌ Response data:", error.response.data);
-			console.error("❌ Response status:", error.response.status);
+			return response.data;
+		} catch (error) {
+			console.error("❌ ERREUR COMPLÈTE:", error);
+			console.error("❌ Message:", error.message);
+			console.error("❌ Code:", error.code);
+			if (error.response) {
+				console.error("❌ Response data:", error.response.data);
+				console.error("❌ Response status:", error.response.status);
+			}
+			throw error; // Important: relancer l'erreur pour la voir dans les logs
 		}
-		return null;
-	}
-});
+	});
 
 // Fonction: Supprimer un événement du calendrier
 exports.deleteCalendarEvent = functions.firestore.document("reservations/{reservationId}").onDelete(async (snap, context) => {
