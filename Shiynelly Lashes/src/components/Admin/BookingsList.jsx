@@ -94,10 +94,12 @@ function BookingsList() {
 					{upcomingBookings.map((booking) => (
 						<div key={booking.id} className="booking-card">
 							<div className="booking-header">
-								<h3>
-									{booking.prenom} {booking.nom}
-								</h3>
-								<span className="booking-service">{booking.service}</span>
+								<div>
+									<h3>
+										{booking.prenom} {booking.nom}
+									</h3>
+									<span className="booking-service">{booking.service}</span>
+								</div>
 							</div>
 
 							<div className="booking-details">
