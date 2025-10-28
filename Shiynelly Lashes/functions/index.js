@@ -127,12 +127,12 @@ exports.sendCancellationEmail = functions.firestore.document("reservations/{rese
 
 		// Envoyer l'email d'annulation
 		await emailjs.send(
-			"service_4t9ude2", // Votre Service ID
+			"service_4t9ude2", //Service ID
 			"template_it6eot2",
 			templateParams,
 			{
 				publicKey: "vSn8lOsAhAksc03kS",
-				privateKey: "VOTRE_PRIVATE_KEY", // À ajouter depuis EmailJS
+				privateKey: "ZQPlChuSjeYg-LHc7yxvX",
 			}
 		);
 
