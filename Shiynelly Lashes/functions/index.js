@@ -28,6 +28,10 @@ exports.createCalendarEvent = functions
 			console.log("📧 Service Account Email:", serviceAccount.client_email);
 			console.log("📅 Calendar ID:", CALENDAR_ID);
 
+			// IMPORTANT: Autoriser le client JWT AVANT de faire la requête
+			await jwtClient.authorize();
+			console.log("✅ JWT autorisé avec succès");
+
 			// Convertir la date et l'heure
 			const [hours, minutes] = reservation.heure.split(":");
 			const startDate = new Date(reservation.date + "T00:00:00");
@@ -101,7 +105,7 @@ Sonner à Demoniere, prendre le 2ème ascenseur près des escaliers, sortir à g
 				console.error("❌ Response data:", error.response.data);
 				console.error("❌ Response status:", error.response.status);
 			}
-			throw error; // Important: relancer l'erreur pour la voir dans les logs
+			throw error;
 		}
 	});
 
