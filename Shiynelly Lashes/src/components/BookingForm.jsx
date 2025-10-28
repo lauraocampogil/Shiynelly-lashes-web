@@ -327,7 +327,6 @@ function BookingForm() {
 	return (
 		<div className="booking-container" id="reservation">
 			<form ref={form} onSubmit={handleSubmit} className="booking-form">
-				{/* ... reste du JSX identique ... */}
 				<div className="form-row">
 					<div className="form-group">
 						<label htmlFor="prenom">Prénom </label>

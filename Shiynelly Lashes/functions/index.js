@@ -128,7 +128,7 @@ exports.sendCancellationEmail = functions.firestore.document("reservations/{rese
 		// Envoyer l'email d'annulation
 		await emailjs.send(
 			"service_4t9ude2", // Votre Service ID
-			"template_XXXXX", // NOUVEAU Template ID pour annulation (à créer)
+			"template_it6eot2",
 			templateParams,
 			{
 				publicKey: "vSn8lOsAhAksc03kS",
