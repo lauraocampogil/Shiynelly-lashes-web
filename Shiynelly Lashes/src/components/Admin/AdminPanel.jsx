@@ -5,6 +5,7 @@ import AdminLogin from "./AdminLogin.jsx";
 import BookingsList from "./BookingsList.jsx";
 import BlockedDatesManager from "./BlockedDatesManager.jsx";
 import "./AdminPanel.css";
+import "./AdminPanelMobile.css";
 
 function AdminPanel() {
 	const [user, setUser] = useState(null);
