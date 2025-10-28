@@ -16,9 +16,16 @@ function BookingsList() {
 			const q = query(collection(db, "reservations"), orderBy("timestamp", "desc"));
 			const querySnapshot = await getDocs(q);
 			const bookingsData = [];
+			const now = new Date();
 
 			querySnapshot.forEach((doc) => {
-				bookingsData.push({ id: doc.id, ...doc.data() });
+				const booking = { id: doc.id, ...doc.data() };
+
+				// Vérifier si la réservation est passée
+				const bookingDate = new Date(booking.date + "T" + booking.heure);
+				booking.isPast = bookingDate < now;
+
+				bookingsData.push(booking);
 			});
 
 			setBookings(bookingsData);
@@ -30,13 +37,11 @@ function BookingsList() {
 	};
 
 	const deleteBooking = async (id) => {
-		// Trouver la réservation avant de la supprimer
 		const booking = bookings.find((b) => b.id === id);
 
 		if (!window.confirm("Êtes-vous sûr de vouloir annuler cette réservation?")) return;
 
 		try {
-			// Supprimer de Firestore (cela déclenche aussi la suppression du calendrier)
 			await deleteDoc(doc(db, "reservations", id));
 
 			// Envoyer l'email d'annulation au client
@@ -56,17 +61,11 @@ function BookingsList() {
 					booking_link: "https://shiynellylashes.com/#/",
 				};
 
-				await emailjs.send(
-					"service_4t9ude2",
-					"template_it6eot2", // template_id annulation
-					templateParams,
-					"vSn8lOsAhAksc03kS"
-				);
+				await emailjs.send("service_4t9ude2", "template_it6eot2", templateParams, "vSn8lOsAhAksc03kS");
 
 				console.log("Email d'annulation envoyé");
 			} catch (emailError) {
 				console.error("Erreur email:", emailError);
-				// Continue même si l'email échoue
 			}
 
 			setBookings(bookings.filter((b) => b.id !== id));
@@ -79,15 +78,20 @@ function BookingsList() {
 
 	if (loading) return <div className="loading">Chargement...</div>;
 
+	// Séparer les réservations futures et passées
+	const upcomingBookings = bookings.filter((b) => !b.isPast);
+	const pastBookings = bookings.filter((b) => b.isPast);
+
 	return (
 		<div className="bookings-list">
-			<h2>📅 Réservations ({bookings.length})</h2>
+			{/* Réservations à venir */}
+			<h2>📅 Réservations à venir ({upcomingBookings.length})</h2>
 
-			{bookings.length === 0 ? (
-				<p className="no-bookings">Aucune réservation pour le moment</p>
+			{upcomingBookings.length === 0 ? (
+				<p className="no-bookings">Aucune réservation à venir</p>
 			) : (
 				<div className="bookings-table">
-					{bookings.map((booking) => (
+					{upcomingBookings.map((booking) => (
 						<div key={booking.id} className="booking-card">
 							<div className="booking-header">
 								<h3>
@@ -122,6 +126,51 @@ function BookingsList() {
 						</div>
 					))}
 				</div>
+			)}
+
+			{/* Réservations passées */}
+			{pastBookings.length > 0 && (
+				<>
+					<h2 style={{ marginTop: "40px" }}>✅ Réservations terminées ({pastBookings.length})</h2>
+
+					<div className="bookings-table">
+						{pastBookings.map((booking) => (
+							<div key={booking.id} className="booking-card booking-past">
+								<div className="booking-header">
+									<h3>
+										{booking.prenom} {booking.nom}
+									</h3>
+									<span className="booking-service booking-service-past">{booking.service}</span>
+									<span className="badge-completed">✅ Terminée</span>
+								</div>
+
+								<div className="booking-details">
+									<p>
+										📅 <strong>Date:</strong> {new Date(booking.date).toLocaleDateString("fr-FR")}
+									</p>
+									<p>
+										🕐 <strong>Heure:</strong> {booking.heure}
+									</p>
+									<p>
+										📧 <strong>Email:</strong> {booking.email}
+									</p>
+									<p>
+										📱 <strong>Téléphone:</strong> {booking.telephone}
+									</p>
+									{booking.commentaires && (
+										<p>
+											💬 <strong>Commentaires:</strong> {booking.commentaires}
+										</p>
+									)}
+								</div>
+
+								<button onClick={() => deleteBooking(booking.id)} className="delete-button delete-button-past">
+									🗑️ Supprimer
+								</button>
+							</div>
+						))}
+					</div>
+				</>
 			)}
 		</div>
 	);
