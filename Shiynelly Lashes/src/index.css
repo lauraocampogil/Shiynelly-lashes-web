@@ -1085,6 +1085,76 @@ h2 {
 		width: 100%;
 		max-width: 100%;
 	}
+	/* Fix pour l'input de date souhaitée */
+	.booking-form input[type="date"] {
+		-webkit-appearance: none;
+		appearance: none;
+		width: 100% !important;
+		min-width: 100% !important;
+		max-width: 100% !important;
+		padding: 16px !important;
+		font-size: 16px !important;
+		border: 2px solid #ddd;
+		border-radius: 8px;
+		background-color: white !important;
+		box-sizing: border-box;
+		display: block;
+		margin: 0;
+	}
+
+	.booking-form input[type="date"]:focus {
+		outline: none;
+		border-color: #667eea;
+	}
+
+	/* Tous les autres inputs aussi */
+	.booking-form input[type="text"],
+	.booking-form input[type="email"],
+	.booking-form input[type="tel"],
+	.booking-form select,
+	.booking-form textarea {
+		width: 100% !important;
+		padding: 16px !important;
+		font-size: 16px !important;
+		border: 2px solid #ddd;
+		border-radius: 8px;
+		box-sizing: border-box;
+	}
+
+	.booking-form textarea {
+		min-height: 100px;
+	}
+
+	/* Labels plus gros */
+	.booking-form label {
+		font-size: 16px !important;
+		font-weight: 600;
+		margin-bottom: 8px;
+		display: block;
+	}
+
+	/* Form groups mieux espacés */
+	.booking-form .form-group {
+		margin-bottom: 20px;
+	}
+
+	/* Bouton submit */
+	.booking-form button[type="submit"] {
+		width: 100%;
+		padding: 16px;
+		font-size: 18px;
+		margin-top: 20px;
+	}
+
+	/* Fix pour les time slots */
+	.time-slots {
+		gap: 10px;
+	}
+
+	.time-slot {
+		padding: 14px 12px;
+		font-size: 15px;
+	}
 
 	.submit-button {
 		width: 100%;
