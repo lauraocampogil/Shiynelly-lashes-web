@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { collection, getDocs, deleteDoc, doc, query, orderBy } from "firebase/firestore";
-import { db } from "../../firebase/config.js";
+import { db } from "../../firebase/config";
+import emailjs from "@emailjs/browser"; 
 
 function BookingsList() {
 	const [bookings, setBookings] = useState([]);
@@ -29,12 +30,47 @@ function BookingsList() {
 	};
 
 	const deleteBooking = async (id) => {
+		// Trouver la réservation avant de la supprimer
+		const booking = bookings.find((b) => b.id === id);
+
 		if (!window.confirm("Êtes-vous sûr de vouloir annuler cette réservation?")) return;
 
 		try {
+			// Supprimer de Firestore (cela déclenche aussi la suppression du calendrier)
 			await deleteDoc(doc(db, "reservations", id));
+
+			// Envoyer l'email d'annulation au client
+			try {
+				const templateParams = {
+					to_name: booking.prenom,
+					from_name: "Shiynelly Lashes",
+					client_email: booking.email,
+					service_name: booking.service,
+					appointment_date: new Date(booking.date).toLocaleDateString("fr-FR", {
+						weekday: "long",
+						year: "numeric",
+						month: "long",
+						day: "numeric",
+					}),
+					appointment_time: booking.heure,
+					booking_link: "https://shiynellylashes.com/#/",
+				};
+
+				await emailjs.send(
+					"service_4t9ude2",
+					"template_8smxy0b", // UTILISEZ TEMPORAIREMENT LE TEMPLATE CLIENT EXISTANT
+					templateParams,
+					"vSn8lOsAhAksc03kS"
+				);
+
+				console.log("Email d'annulation envoyé");
+			} catch (emailError) {
+				console.error("Erreur email:", emailError);
+				// Continue même si l'email échoue
+			}
+
 			setBookings(bookings.filter((b) => b.id !== id));
-			alert("Réservation annulée avec succès");
+			alert("Réservation annulée et email envoyé au client");
 		} catch (error) {
 			console.error("Erreur suppression:", error);
 			alert("Erreur lors de l'annulation");

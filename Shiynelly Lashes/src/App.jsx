@@ -8,9 +8,8 @@ function App() {
 			<Routes>
 				<Route path="/" element={<Home />} />
 				<Route path="/admin" element={<AdminPanel />} />
+				<Route path="*" element={<Home />} />
 			</Routes>
 		</Router>
 	);
 }
-
-export default App;
