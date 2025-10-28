@@ -1,20 +1,13 @@
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const { google } = require("googleapis");
-const path = require("path");
 
 admin.initializeApp();
 
 const CALENDAR_ID = "studiobynelly@gmail.com";
 
 // Charger les credentials depuis le fichier JSON
-const serviceAccountPath = path.join(__dirname, "service-account.json");
-const serviceAccount = require(serviceAccountPath);
-
-// Créer le client JWT
-const jwtClient = new google.auth.JWT(serviceAccount.client_email, null, serviceAccount.private_key, ["https://www.googleapis.com/auth/calendar"]);
-
-const calendar = google.calendar({ version: "v3", auth: jwtClient });
+const serviceAccount = require("./service-account.json");
 
 // Fonction: Créer un événement dans le calendrier
 exports.createCalendarEvent = functions
@@ -28,9 +21,16 @@ exports.createCalendarEvent = functions
 			console.log("📧 Service Account Email:", serviceAccount.client_email);
 			console.log("📅 Calendar ID:", CALENDAR_ID);
 
-			// IMPORTANT: Autoriser le client JWT AVANT de faire la requête
-			await jwtClient.authorize();
-			console.log("✅ JWT autorisé avec succès");
+			// Créer un NOUVEAU client JWT pour CHAQUE requête
+			const auth = new google.auth.GoogleAuth({
+				credentials: serviceAccount,
+				scopes: ["https://www.googleapis.com/auth/calendar"],
+			});
+
+			const authClient = await auth.getClient();
+			const calendar = google.calendar({ version: "v3", auth: authClient });
+
+			console.log("✅ Auth client créé");
 
 			// Convertir la date et l'heure
 			const [hours, minutes] = reservation.heure.split(":");
@@ -102,7 +102,7 @@ Sonner à Demoniere, prendre le 2ème ascenseur près des escaliers, sortir à g
 			console.error("❌ Message:", error.message);
 			console.error("❌ Code:", error.code);
 			if (error.response) {
-				console.error("❌ Response data:", error.response.data);
+				console.error("❌ Response data:", JSON.stringify(error.response.data));
 				console.error("❌ Response status:", error.response.status);
 			}
 			throw error;
@@ -119,6 +119,14 @@ exports.deleteCalendarEvent = functions.firestore.document("reservations/{reserv
 	}
 
 	try {
+		const auth = new google.auth.GoogleAuth({
+			credentials: serviceAccount,
+			scopes: ["https://www.googleapis.com/auth/calendar"],
+		});
+
+		const authClient = await auth.getClient();
+		const calendar = google.calendar({ version: "v3", auth: authClient });
+
 		await calendar.events.delete({
 			calendarId: CALENDAR_ID,
 			eventId: reservation.calendarEventId,
