@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { collection, getDocs, deleteDoc, doc, query, orderBy } from "firebase/firestore";
 import { db } from "../../firebase/config";
-import emailjs from "@emailjs/browser"; 
+import emailjs from "@emailjs/browser";
 
 function BookingsList() {
 	const [bookings, setBookings] = useState([]);
@@ -58,7 +58,7 @@ function BookingsList() {
 
 				await emailjs.send(
 					"service_4t9ude2",
-					"template_8smxy0b", // UTILISEZ TEMPORAIREMENT LE TEMPLATE CLIENT EXISTANT
+					"template_it6eot2", // template_id annulation
 					templateParams,
 					"vSn8lOsAhAksc03kS"
 				);
