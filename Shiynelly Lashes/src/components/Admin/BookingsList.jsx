@@ -94,12 +94,10 @@ function BookingsList() {
 					{upcomingBookings.map((booking) => (
 						<div key={booking.id} className="booking-card">
 							<div className="booking-header">
-								<div>
-									<h3>
-										{booking.prenom} {booking.nom}
-									</h3>
-									<span className="booking-service">{booking.service}</span>
-								</div>
+								<h3>
+									{booking.prenom} {booking.nom}
+								</h3>
+								<span className="booking-service">{booking.service}</span>
 							</div>
 
 							<div className="booking-details">
@@ -142,8 +140,10 @@ function BookingsList() {
 									<h3>
 										{booking.prenom} {booking.nom}
 									</h3>
-									<span className="booking-service booking-service-past">{booking.service}</span>
-									<span className="badge-completed">✅ Terminée</span>
+									<div className="booking-header-badges">
+										<span className="booking-service booking-service-past">{booking.service}</span>
+										<span className="badge-completed">✅ Terminée</span>
+									</div>
 								</div>
 
 								<div className="booking-details">
