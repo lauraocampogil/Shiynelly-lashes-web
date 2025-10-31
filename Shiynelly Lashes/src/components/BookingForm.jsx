@@ -149,16 +149,25 @@ function BookingForm() {
 	const handleChange = async (e) => {
 		const { name, value } = e.target;
 
-		if (name === "date" && value) {
-			if (!isWeekend(value)) {
-				alert("Veuillez sélectionner uniquement un samedi ou un dimanche");
+		if (name === "date") {
+			// Si l'utilisateur efface la date ou clique juste sur le calendrier
+			if (!value) {
+				setFormData({ ...formData, [name]: value });
 				return;
 			}
 
-			// NOUVEAU: Vérifier si la date est bloquée
+			// Vérifier si c'est un weekend
+			if (!isWeekend(value)) {
+				alert("Veuillez sélectionner uniquement un samedi ou un dimanche");
+				setFormData({ ...formData, date: "" }); // Réinitialiser la date
+				return;
+			}
+
+			// Vérifier si la date est bloquée
 			const blocked = await isDateBlocked(value);
 			if (blocked) {
 				alert("Cette date n'est pas disponible. Veuillez choisir une autre date.");
+				setFormData({ ...formData, date: "" }); // Réinitialiser la date
 				return;
 			}
 
@@ -166,6 +175,7 @@ function BookingForm() {
 				selected_date: value,
 			});
 
+			// Générer les créneaux horaires
 			if (formData.service) {
 				const selectedService = services.find((s) => s.id === formData.service);
 				const slots = await generateTimeSlots(selectedService.duration, value);
