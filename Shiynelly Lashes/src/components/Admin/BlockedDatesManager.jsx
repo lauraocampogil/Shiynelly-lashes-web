@@ -256,7 +256,7 @@ function BlockedDatesManager() {
 							</div>
 							<div className="form-group">
 								<label>
-									<i className="fa-solid fa-calendar-day"></i>Date de fin
+									<i className="fa-solid fa-calendar-day"></i> Date de fin
 								</label>
 								<input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} required />
 							</div>
@@ -265,7 +265,7 @@ function BlockedDatesManager() {
 
 					<div className="form-group">
 						<label>
-							<i className="fa-solid fa-comment"></i>Raison
+							<i className="fa-solid fa-comment"></i> Raison
 						</label>
 						<input type="text" value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Ex: Congés d'été, Vacances de Noël, etc." />
 					</div>
@@ -310,7 +310,7 @@ function BlockedDatesManager() {
 				{ranges.length > 0 && (
 					<div className="ranges-section">
 						<h3>
-							<i className="fa-solid fa-calendar"></i>Périodes bloquées
+							<i className="fa-solid fa-calendar"></i> Périodes bloquées
 						</h3>
 						{ranges.map((range, index) => (
 							<div key={index} className="blocked-range-card">
