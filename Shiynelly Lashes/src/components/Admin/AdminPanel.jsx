@@ -43,13 +43,13 @@ function AdminPanel() {
 				<h1>Admin Panel - Shiynelly Lashes</h1>
 				<div className="admin-nav">
 					<button className={`nav-btn ${activeTab === "bookings" ? "active" : ""}`} onClick={() => setActiveTab("bookings")}>
-						📅 Réservations
+						<i className="fa-solid fa-calendar-check"></i> Réservations
 					</button>
 					<button className={`nav-btn ${activeTab === "blocked" ? "active" : ""}`} onClick={() => setActiveTab("blocked")}>
-						🔒 Dates Bloquées
+						<i className="fa-solid fa-lock"></i> Dates Bloquées
 					</button>
 					<button onClick={handleLogout} className="logout-button">
-						🚪 Déconnexion
+						<i className="fa-solid fa-arrow-right-from-bracket"></i> Déconnexion
 					</button>
 				</div>
 			</header>

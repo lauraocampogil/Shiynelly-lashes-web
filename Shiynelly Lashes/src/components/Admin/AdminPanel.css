@@ -402,6 +402,9 @@
 .singles-section {
 	margin-bottom: 40px;
 }
+.singles-section {
+	gap: 20px;
+}
 
 .ranges-section h3,
 .singles-section h3 {

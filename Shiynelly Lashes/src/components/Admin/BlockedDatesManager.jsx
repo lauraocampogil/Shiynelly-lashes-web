@@ -203,16 +203,30 @@ function BlockedDatesManager() {
 	return (
 		<div className="blocked-dates-manager">
 			<div className="section-header">
-				<h2>🔒 Dates Bloquées ({blockedDates.length})</h2>
+				<h2>
+					{" "}
+					<i className="fa-solid fa-lock"></i> Dates Bloquées ({blockedDates.length})
+				</h2>
 				<button onClick={() => setShowForm(!showForm)} className="add-button">
-					{showForm ? "❌ Annuler" : "➕ Bloquer une date"}
+					{showForm ? (
+						<>
+							<i className="fa-solid fa-xmark"></i> Annuler
+						</>
+					) : (
+						<>
+							<i className="fa-solid fa-plus"></i> Bloquer une date
+						</>
+					)}
 				</button>
 			</div>
 
 			{showForm && (
 				<form onSubmit={addBlockedDate} className="block-date-form">
 					<div className="form-group">
-						<label>📆 Mode de blocage</label>
+						<label>
+							{" "}
+							<i className="fa-solid fa-calendar"></i> Mode de blocage
+						</label>
 						<div className="radio-group">
 							<label>
 								<input type="radio" value="single" checked={blockMode === "single"} onChange={(e) => setBlockMode(e.target.value)} />
@@ -227,29 +241,39 @@ function BlockedDatesManager() {
 
 					{blockMode === "single" ? (
 						<div className="form-group">
-							<label>📅 Date à bloquer</label>
+							<label>
+								<i className="fa-solid fa-calendar-day"></i> Date à bloquer
+							</label>
 							<input type="date" value={newDate} onChange={(e) => setNewDate(e.target.value)} required />
 						</div>
 					) : (
 						<div className="form-row">
 							<div className="form-group">
-								<label>📅 Date de début</label>
+								<label>
+									<i className="fa-solid fa-calendar-day"></i> Date de début
+								</label>
 								<input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} required />
 							</div>
 							<div className="form-group">
-								<label>📅 Date de fin</label>
+								<label>
+									<i className="fa-solid fa-calendar-day"></i>Date de fin
+								</label>
 								<input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} required />
 							</div>
 						</div>
 					)}
 
 					<div className="form-group">
-						<label>💬 Raison</label>
+						<label>
+							<i className="fa-solid fa-comment"></i>Raison
+						</label>
 						<input type="text" value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Ex: Congés d'été, Vacances de Noël, etc." />
 					</div>
 
 					<div className="form-group">
-						<label>⏰ Type de blocage</label>
+						<label>
+							<i className="fa-solid fa-clock"></i> Type de blocage
+						</label>
 						<div className="radio-group">
 							<label>
 								<input type="radio" value="allDay" checked={blockType === "allDay"} onChange={(e) => setBlockType(e.target.value)} />
@@ -276,7 +300,7 @@ function BlockedDatesManager() {
 					)}
 
 					<button type="submit" className="submit-button">
-						🔒 Bloquer {blockMode === "range" ? "cette période" : "cette date"}
+						<i className="fa-solid fa-lock"></i> Bloquer {blockMode === "range" ? "cette période" : "cette date"}
 					</button>
 				</form>
 			)}
@@ -285,12 +309,14 @@ function BlockedDatesManager() {
 				{/* Périodes */}
 				{ranges.length > 0 && (
 					<div className="ranges-section">
-						<h3>📅 Périodes bloquées</h3>
+						<h3>
+							<i className="fa-solid fa-calendar"></i>Périodes bloquées
+						</h3>
 						{ranges.map((range, index) => (
 							<div key={index} className="blocked-range-card">
 								<div className="date-info">
 									<h3>
-										📅 Du {new Date(range.rangeStart + "T00:00:00").toLocaleDateString("fr-FR")} au {new Date(range.rangeEnd + "T00:00:00").toLocaleDateString("fr-FR")}
+										<i className="fa-solid fa-calendar"></i> Du {new Date(range.rangeStart + "T00:00:00").toLocaleDateString("fr-FR")} au {new Date(range.rangeEnd + "T00:00:00").toLocaleDateString("fr-FR")}
 									</h3>
 									<p className="reason">{range.reason}</p>
 									<p className="date-count">{range.dates.length} jour(s) bloqué(s)</p>
@@ -310,7 +336,7 @@ function BlockedDatesManager() {
 									)}
 								</div>
 								<button onClick={() => deleteRange(range.rangeStart, range.rangeEnd)} className="unblock-button">
-									🔓 Débloquer la période
+									<i className="fa-solid fa-lock-open"></i> Débloquer la période
 								</button>
 							</div>
 						))}
@@ -320,12 +346,14 @@ function BlockedDatesManager() {
 				{/* Dates uniques */}
 				{singles.length > 0 && (
 					<div className="singles-section">
-						<h3>📅 Dates individuelles</h3>
+						<h3>
+							<i className="fa-solid fa-calendar"></i> Dates individuelles
+						</h3>
 						{singles.map((item) => (
 							<div key={item.id} className="blocked-date-card">
 								<div className="date-info">
 									<h3>
-										📅{" "}
+										<i className="fa-solid fa-calendar"></i>{" "}
 										{new Date(item.date + "T00:00:00").toLocaleDateString("fr-FR", {
 											weekday: "long",
 											year: "numeric",
@@ -350,7 +378,7 @@ function BlockedDatesManager() {
 									)}
 								</div>
 								<button onClick={() => deleteBlockedDate(item.id)} className="unblock-button">
-									🔓 Débloquer
+									<i className="fa-solid fa-lock-open"></i> Débloquer
 								</button>
 							</div>
 						))}

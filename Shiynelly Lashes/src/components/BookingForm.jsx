@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import emailjs from "@emailjs/browser";
 import { services } from "../../constants/index.js";
 import { db, logAnalyticsEvent } from "../firebase/config.js";

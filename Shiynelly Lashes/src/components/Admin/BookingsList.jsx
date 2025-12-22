@@ -85,7 +85,10 @@ function BookingsList() {
 	return (
 		<div className="bookings-list">
 			{/* Réservations à venir */}
-			<h2>📅 Réservations à venir ({upcomingBookings.length})</h2>
+			<h2>
+				{" "}
+				<i className="fa-solid fa-calendar-check"></i> Réservations à venir ({upcomingBookings.length})
+			</h2>
 
 			{upcomingBookings.length === 0 ? (
 				<p className="no-bookings">Aucune réservation à venir</p>
@@ -102,26 +105,26 @@ function BookingsList() {
 
 							<div className="booking-details">
 								<p>
-									📅 <strong>Date:</strong> {new Date(booking.date).toLocaleDateString("fr-FR")}
+									<i className="fa-solid fa-calendar"></i> <strong>Date:</strong> {new Date(booking.date).toLocaleDateString("fr-FR")}
 								</p>
 								<p>
-									🕐 <strong>Heure:</strong> {booking.heure}
+									<i className="fa-solid fa-clock"></i> <strong>Heure:</strong> {booking.heure}
 								</p>
 								<p>
-									📧 <strong>Email:</strong> {booking.email}
+									<i className="fa-solid fa-envelope"></i> <strong>Email:</strong> {booking.email}
 								</p>
 								<p>
-									📱 <strong>Téléphone:</strong> {booking.telephone}
+									<i className="fa-solid fa-phone"></i> <strong>Téléphone:</strong> {booking.telephone}
 								</p>
 								{booking.commentaires && (
 									<p>
-										💬 <strong>Commentaires:</strong> {booking.commentaires}
+										<i className="fa-solid fa-comment"></i> <strong>Commentaires:</strong> {booking.commentaires}
 									</p>
 								)}
 							</div>
 
 							<button onClick={() => deleteBooking(booking.id)} className="delete-button">
-								🗑️ Annuler
+								<i className="fa-solid fa-trash-can"></i> Annuler
 							</button>
 						</div>
 					))}
@@ -131,7 +134,9 @@ function BookingsList() {
 			{/* Réservations passées */}
 			{pastBookings.length > 0 && (
 				<>
-					<h2 style={{ marginTop: "40px" }}>✅ Réservations terminées ({pastBookings.length})</h2>
+					<h2 style={{ marginTop: "40px" }}>
+						<i className="fa-solid fa-circle-check"></i> Réservations terminées ({pastBookings.length})
+					</h2>
 
 					<div className="bookings-table">
 						{pastBookings.map((booking) => (
@@ -142,32 +147,34 @@ function BookingsList() {
 									</h3>
 									<div className="booking-header-badges">
 										<span className="booking-service booking-service-past">{booking.service}</span>
-										<span className="badge-completed">✅ Terminée</span>
+										<span className="badge-completed">
+											<i className="fa-solid fa-circle-check"></i> Terminée
+										</span>
 									</div>
 								</div>
 
 								<div className="booking-details">
 									<p>
-										📅 <strong>Date:</strong> {new Date(booking.date).toLocaleDateString("fr-FR")}
+										<i className="fa-solid fa-calendar"></i> <strong>Date:</strong> {new Date(booking.date).toLocaleDateString("fr-FR")}
 									</p>
 									<p>
-										🕐 <strong>Heure:</strong> {booking.heure}
+										<i className="fa-solid fa-clock"></i> <strong>Heure:</strong> {booking.heure}
 									</p>
 									<p>
-										📧 <strong>Email:</strong> {booking.email}
+										<i className="fa-solid fa-envelope"></i> <strong>Email:</strong> {booking.email}
 									</p>
 									<p>
-										📱 <strong>Téléphone:</strong> {booking.telephone}
+										<i className="fa-solid fa-phone"></i> <strong>Téléphone:</strong> {booking.telephone}
 									</p>
 									{booking.commentaires && (
 										<p>
-											💬 <strong>Commentaires:</strong> {booking.commentaires}
+											<i className="fa-solid fa-comment"></i> <strong>Commentaires:</strong> {booking.commentaires}
 										</p>
 									)}
 								</div>
 
 								<button onClick={() => deleteBooking(booking.id)} className="delete-button delete-button-past">
-									🗑️ Supprimer
+									<i className="fa-solid fa-trash-can"></i> Supprimer
 								</button>
 							</div>
 						))}
