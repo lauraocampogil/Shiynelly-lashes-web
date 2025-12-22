@@ -920,6 +920,174 @@ h2 {
 	opacity: 1;
 	transform: translateY(0);
 }
+/* Price Announcement Modal Styles */
+.modal-overlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: rgba(0, 0, 0, 0.7);
+	z-index: 9998;
+	animation: fadeIn 0.3s ease;
+}
+
+.price-modal {
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	background: white;
+	border-radius: 20px;
+	padding: 2.5rem;
+	max-width: 500px;
+	width: 90%;
+	z-index: 9999;
+	box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+	animation: slideUpModal 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.modal-close {
+	position: absolute;
+	top: 1rem;
+	right: 1rem;
+	background: transparent;
+	border: none;
+	font-size: 1.5rem;
+	color: #666;
+	cursor: pointer;
+	width: 36px;
+	height: 36px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 50%;
+	transition: all 0.3s ease;
+}
+
+.modal-close:hover {
+	background: #f3ede2;
+	color: #312019;
+	transform: rotate(90deg);
+}
+
+.modal-content {
+	text-align: center;
+}
+
+.modal-icon {
+	width: 70px;
+	height: 70px;
+	background: linear-gradient(135deg, #a9734d 0%, #8f5f3f 100%);
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin: 0 auto 1.5rem;
+	font-size: 2rem;
+	color: white;
+}
+
+.modal-content h2 {
+	font-family: "Gemola", sans-serif;
+	font-size: 2rem;
+	color: #312019;
+	margin-bottom: 1rem;
+}
+
+.modal-message {
+	font-size: 1.1rem;
+	color: #666;
+	line-height: 1.6;
+	margin-bottom: 1.5rem;
+}
+
+.modal-message strong {
+	color: #a9734d;
+	font-weight: 600;
+}
+
+.modal-highlight {
+	background: linear-gradient(135deg, #fff9f0 0%, #fef6ed 100%);
+	border-left: 4px solid #a9734d;
+	padding: 1rem 1.5rem;
+	border-radius: 10px;
+	display: flex;
+	align-items: center;
+	gap: 1rem;
+	margin-bottom: 2rem;
+}
+
+.modal-highlight i {
+	color: #a9734d;
+	font-size: 1.5rem;
+}
+
+.modal-highlight span {
+	color: #312019;
+	font-weight: 500;
+	text-align: left;
+}
+
+.modal-cta {
+	background: linear-gradient(135deg, #a9734d 0%, #8f5f3f 100%);
+	color: white;
+	border: none;
+	padding: 1rem 2rem;
+	border-radius: 50px;
+	font-size: 1.1rem;
+	font-weight: 600;
+	cursor: pointer;
+	width: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.5rem;
+	margin-bottom: 0.75rem;
+	transition: all 0.3s ease;
+	font-family: "DM Sans", sans-serif;
+}
+
+.modal-cta:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 8px 20px rgba(169, 115, 77, 0.3);
+}
+
+.modal-secondary {
+	background: transparent;
+	color: #666;
+	border: none;
+	padding: 0.75rem;
+	font-size: 1rem;
+	cursor: pointer;
+	width: 100%;
+	transition: color 0.3s ease;
+	font-family: "DM Sans", sans-serif;
+}
+
+.modal-secondary:hover {
+	color: #a9734d;
+}
+
+@keyframes fadeIn {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+@keyframes slideUpModal {
+	from {
+		opacity: 0;
+		transform: translate(-50%, -40%);
+	}
+	to {
+		opacity: 1;
+		transform: translate(-50%, -50%);
+	}
+}
 /* Responsive Design */
 @media (max-width: 1024px) {
 	.navbar {
@@ -1204,6 +1372,20 @@ h2 {
 	.logo-text {
 		display: none;
 		font-family: "Chetta Vissto", serif;
+	}
+	.price-modal {
+		padding: 1rem 0.5rem;
+		max-width: 90%;
+	}
+	.modal-content h2 {
+		font-size: 1.5rem;
+	}
+	.modal-message {
+		font-size: 1rem;
+	}
+	.modal-highlight {
+		flex-direction: column;
+		text-align: center;
 	}
 }
 @media (max-width: 400px) {
