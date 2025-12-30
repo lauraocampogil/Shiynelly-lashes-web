@@ -86,7 +86,6 @@ function BookingsList() {
 		<div className="bookings-list">
 			{/* Réservations à venir */}
 			<h2>
-				{" "}
 				<i className="fa-solid fa-calendar-check"></i> Réservations à venir ({upcomingBookings.length})
 			</h2>
 

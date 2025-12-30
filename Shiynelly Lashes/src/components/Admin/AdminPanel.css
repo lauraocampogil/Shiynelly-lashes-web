@@ -459,3 +459,184 @@
 .delete-button-past:hover {
 	background: #616161;
 }
+/* Enhanced Blocked Dates Manager Styles */
+
+/* Action Type Radio Buttons */
+.radio-label-primary,
+.radio-label-success {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	cursor: pointer;
+	padding: 0.75rem 1rem;
+	border-radius: 8px;
+	border: 2px solid transparent;
+	transition: all 0.3s ease;
+}
+
+.radio-label-primary {
+	background: #fff5f5;
+	border-color: #ffcdd2;
+}
+
+.radio-label-primary:hover {
+	border-color: #f44336;
+	background: #ffebee;
+}
+
+.radio-label-primary input:checked ~ .block-badge {
+	font-weight: 700;
+}
+
+.radio-label-success {
+	background: #f1f8f4;
+	border-color: #c8e6c9;
+}
+
+.radio-label-success:hover {
+	border-color: #4caf50;
+	background: #e8f5e9;
+}
+
+.radio-label-success input:checked ~ .open-badge {
+	font-weight: 700;
+}
+
+.block-badge,
+.open-badge {
+	font-size: 0.95rem;
+	padding: 0.25rem 0.5rem;
+	border-radius: 4px;
+}
+
+.block-badge {
+	color: #d32f2f;
+}
+
+.open-badge {
+	color: #2e7d32;
+}
+
+/* Help Text */
+.help-text {
+	margin: 0.5rem 0 0 0;
+	font-size: 0.85rem;
+	color: #666;
+	font-style: italic;
+}
+
+/* Submit Buttons */
+.submit-button.submit-open {
+	background: #4caf50;
+}
+
+.submit-button.submit-open:hover {
+	background: #45a049;
+}
+
+.submit-button.submit-block {
+	background: #f44336;
+}
+
+.submit-button.submit-block:hover {
+	background: #d32f2f;
+}
+
+/* Open Section */
+.open-section {
+	margin-bottom: 3rem;
+}
+
+.open-section h3 {
+	color: #2e7d32;
+	font-size: 1.4rem;
+	margin-bottom: 1.5rem;
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+}
+
+.open-range-card,
+.open-date-card {
+	background: #f1f8f4;
+	border: 2px solid #4caf50;
+	border-left: 6px solid #4caf50;
+	border-radius: 12px;
+	padding: 1.5rem;
+	margin-bottom: 1rem;
+	display: flex;
+	justify-content: space-between;
+	align-items: flex-start;
+	transition: all 0.3s ease;
+}
+
+.open-range-card:hover,
+.open-date-card:hover {
+	box-shadow: 0 4px 16px rgba(76, 175, 80, 0.2);
+	transform: translateY(-2px);
+}
+
+/* Blocked Section */
+.blocked-section {
+	margin-bottom: 2rem;
+}
+
+.blocked-section h3 {
+	color: #d32f2f;
+	font-size: 1.4rem;
+	margin-bottom: 1.5rem;
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+}
+
+/* Badge Styles */
+.badge.open-badge {
+	background: #4caf50;
+	color: white;
+	font-size: 0.85rem;
+	padding: 0.4rem 0.8rem;
+	border-radius: 20px;
+	font-weight: 600;
+	display: inline-flex;
+	align-items: center;
+	gap: 0.25rem;
+}
+
+/* Existing blocked card styles */
+.blocked-range-card,
+.blocked-date-card {
+	background: white;
+	border: 2px solid #f44336;
+	border-left: 6px solid #f44336;
+	border-radius: 12px;
+	padding: 1.5rem;
+	margin-bottom: 1rem;
+	display: flex;
+	justify-content: space-between;
+	align-items: flex-start;
+	transition: all 0.3s ease;
+}
+
+.blocked-range-card:hover,
+.blocked-date-card:hover {
+	box-shadow: 0 4px 16px rgba(244, 67, 54, 0.2);
+	transform: translateY(-2px);
+}
+
+/* Date Info */
+.date-info {
+	flex: 1;
+}
+
+.date-info .reason {
+	color: #666;
+	margin: 0.5rem 0;
+	font-style: italic;
+}
+
+.date-info .date-count {
+	color: #999;
+	font-size: 0.9rem;
+	margin: 0.5rem 0;
+}

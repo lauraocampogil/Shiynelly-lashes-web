@@ -4,13 +4,14 @@ import { auth } from "../../firebase/config.js";
 import AdminLogin from "./AdminLogin.jsx";
 import BookingsList from "./BookingsList.jsx";
 import BlockedDatesManager from "./BlockedDatesManager.jsx";
+import WeeklyAvailability from "./WeeklyAvailability.jsx";
 import "./AdminPanel.css";
 import "./AdminPanelMobile.css";
 
 function AdminPanel() {
 	const [user, setUser] = useState(null);
 	const [loading, setLoading] = useState(true);
-	const [activeTab, setActiveTab] = useState("bookings"); // "bookings" ou "blocked"
+	const [activeTab, setActiveTab] = useState("bookings"); // "bookings", "weekly", ou "blocked"
 
 	useEffect(() => {
 		const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -45,6 +46,9 @@ function AdminPanel() {
 					<button className={`nav-btn ${activeTab === "bookings" ? "active" : ""}`} onClick={() => setActiveTab("bookings")}>
 						<i className="fa-solid fa-calendar-check"></i> Réservations
 					</button>
+					<button className={`nav-btn ${activeTab === "weekly" ? "active" : ""}`} onClick={() => setActiveTab("weekly")}>
+						<i className="fa-solid fa-calendar"></i> Jours d'ouverture
+					</button>
 					<button className={`nav-btn ${activeTab === "blocked" ? "active" : ""}`} onClick={() => setActiveTab("blocked")}>
 						<i className="fa-solid fa-lock"></i> Dates Bloquées
 					</button>
@@ -56,6 +60,7 @@ function AdminPanel() {
 
 			<main className="admin-content">
 				{activeTab === "bookings" && <BookingsList />}
+				{activeTab === "weekly" && <WeeklyAvailability />}
 				{activeTab === "blocked" && <BlockedDatesManager />}
 			</main>
 		</div>

@@ -1,8 +1,8 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import emailjs from "@emailjs/browser";
 import { services } from "../../constants/index.js";
 import { db, logAnalyticsEvent } from "../firebase/config.js";
-import { collection, addDoc, query, where, getDocs } from "firebase/firestore";
+import { collection, addDoc, query, where, getDocs, doc, getDoc } from "firebase/firestore";
 
 function BookingForm() {
 	const form = useRef();
@@ -19,6 +19,69 @@ function BookingForm() {
 
 	const [availableSlots, setAvailableSlots] = useState([]);
 	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [weeklySchedule, setWeeklySchedule] = useState(null);
+
+	// Charger le planning hebdomadaire au démarrage
+	useEffect(() => {
+		loadWeeklySchedule();
+	}, []);
+
+	// Charger le planning hebdomadaire depuis Firebase
+	const loadWeeklySchedule = async () => {
+		try {
+			const docRef = doc(db, "settings", "weeklySchedule");
+			const docSnap = await getDoc(docRef);
+
+			if (docSnap.exists()) {
+				setWeeklySchedule(docSnap.data());
+			} else {
+				// Planning par défaut si pas encore configuré
+				// Week-ends OUVERTS, semaine FERMÉE
+				setWeeklySchedule({
+					monday: { open: false, label: "Lundi" },
+					tuesday: { open: false, label: "Mardi" },
+					wednesday: { open: false, label: "Mercredi" },
+					thursday: { open: false, label: "Jeudi" },
+					friday: { open: false, label: "Vendredi" },
+					saturday: { open: true, label: "Samedi" },
+					sunday: { open: true, label: "Dimanche" },
+				});
+			}
+		} catch (error) {
+			console.error("Erreur chargement planning:", error);
+			// Planning par défaut en cas d'erreur: Week-ends OUVERTS
+			setWeeklySchedule({
+				monday: { open: false, label: "Lundi" },
+				tuesday: { open: false, label: "Mardi" },
+				wednesday: { open: false, label: "Mercredi" },
+				thursday: { open: false, label: "Jeudi" },
+				friday: { open: false, label: "Vendredi" },
+				saturday: { open: true, label: "Samedi" },
+				sunday: { open: true, label: "Dimanche" },
+			});
+		}
+	};
+
+	// Vérifier si un jour est ouvert selon le planning hebdomadaire
+	const isDayOpen = (dateString) => {
+		if (!weeklySchedule) return false;
+
+		const date = new Date(dateString + "T00:00:00");
+		const dayIndex = date.getDay(); // 0 = dimanche, 1 = lundi, etc.
+
+		const dayMap = {
+			0: "sunday",
+			1: "monday",
+			2: "tuesday",
+			3: "wednesday",
+			4: "thursday",
+			5: "friday",
+			6: "saturday",
+		};
+
+		const dayKey = dayMap[dayIndex];
+		return weeklySchedule[dayKey]?.open ?? false;
+	};
 
 	// Fonction pour vérifier si un créneau est disponible
 	const isSlotAvailable = async (date, startTime, duration) => {
@@ -49,12 +112,33 @@ function BookingForm() {
 			return false;
 		}
 	};
+
 	// Vérifier si une date est complètement bloquée
 	const isDateBlocked = async (date) => {
 		try {
-			const q = query(collection(db, "blockedDates"), where("date", "==", date), where("allDay", "==", true));
+			const q = query(collection(db, "blockedDates"), where("date", "==", date));
 			const querySnapshot = await getDocs(q);
-			return !querySnapshot.empty;
+
+			// Vérifier s'il y a une date OUVERTE exceptionnellement
+			let hasOpenException = false;
+			let hasBlockException = false;
+
+			querySnapshot.forEach((doc) => {
+				const data = doc.data();
+				if (data.actionType === "open") {
+					hasOpenException = true;
+				} else if (data.allDay && (!data.actionType || data.actionType === "block")) {
+					hasBlockException = true;
+				}
+			});
+
+			// Si date ouverte exceptionnellement, elle n'est PAS bloquée
+			if (hasOpenException) return false;
+
+			// Si date bloquée, elle est bloquée
+			if (hasBlockException) return true;
+
+			return false;
 		} catch (error) {
 			console.error("Erreur vérification date bloquée:", error);
 			return false;
@@ -81,6 +165,7 @@ function BookingForm() {
 			return [];
 		}
 	};
+
 	const generateTimeSlots = async (serviceDuration, selectedDate) => {
 		if (!selectedDate) return [];
 
@@ -156,18 +241,35 @@ function BookingForm() {
 				return;
 			}
 
-			// Vérifier si c'est un weekend
-			if (!isWeekend(value)) {
-				alert("Veuillez sélectionner uniquement un samedi ou un dimanche");
-				setFormData({ ...formData, date: "" }); // Réinitialiser la date
-				return;
+			// Vérifier d'abord si la date est OUVERTE exceptionnellement
+			const q = query(collection(db, "blockedDates"), where("date", "==", value));
+			const querySnapshot = await getDocs(q);
+
+			let isExceptionallyOpen = false;
+			querySnapshot.forEach((doc) => {
+				const data = doc.data();
+				if (data.actionType === "open") {
+					isExceptionallyOpen = true;
+				}
+			});
+
+			// Si date ouverte exceptionnellement, on autorise même si normalement fermée
+			if (!isExceptionallyOpen) {
+				// Vérifier si le jour est ouvert selon le planning hebdomadaire
+				if (!isDayOpen(value)) {
+					const date = new Date(value + "T00:00:00");
+					const dayName = date.toLocaleDateString("fr-FR", { weekday: "long" });
+					alert(`Désolé, nous sommes fermés le ${dayName}. Veuillez choisir un jour d'ouverture.`);
+					setFormData({ ...formData, date: "" });
+					return;
+				}
 			}
 
 			// Vérifier si la date est bloquée
 			const blocked = await isDateBlocked(value);
 			if (blocked) {
 				alert("Cette date n'est pas disponible. Veuillez choisir une autre date.");
-				setFormData({ ...formData, date: "" }); // Réinitialiser la date
+				setFormData({ ...formData, date: "" });
 				return;
 			}
 
@@ -186,17 +288,12 @@ function BookingForm() {
 		setFormData({ ...formData, [name]: value });
 	};
 
-	const isWeekend = (dateString) => {
-		const date = new Date(dateString + "T00:00:00");
-		const day = date.getDay();
-		return day === 0 || day === 6;
-	};
-
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 
-		if (!isWeekend(formData.date)) {
-			alert("Veuillez choisir un samedi ou un dimanche");
+		// Vérifier que le jour est ouvert
+		if (!isDayOpen(formData.date)) {
+			alert("Ce jour n'est pas disponible pour les réservations");
 			return;
 		}
 
@@ -334,6 +431,27 @@ function BookingForm() {
 		return maxDate.toISOString().split("T")[0];
 	};
 
+	// Afficher les jours d'ouverture
+	const getOpenDaysText = () => {
+		if (!weeklySchedule) return "";
+
+		const openDays = [];
+		const daysOrder = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
+
+		daysOrder.forEach((day) => {
+			if (weeklySchedule[day]?.open) {
+				openDays.push(weeklySchedule[day].label);
+			}
+		});
+
+		if (openDays.length === 0) return "Aucun jour d'ouverture configuré";
+		if (openDays.length === 1) return openDays[0];
+		if (openDays.length === 2) return `${openDays[0]} et ${openDays[1]}`;
+
+		const lastDay = openDays.pop();
+		return `${openDays.join(", ")} et ${lastDay}`;
+	};
+
 	return (
 		<div className="booking-container" id="reservation">
 			<form ref={form} onSubmit={handleSubmit} className="booking-form">
@@ -376,19 +494,20 @@ function BookingForm() {
 					</div>
 					{formData.service && <p className="service-description">{services.find((s) => s.id === formData.service)?.description}</p>}
 				</div>
+
 				<div className="form-group">
 					<label htmlFor="date">
-						<i className="far fa-calendar-alt"></i> Date souhaitée (Week-end uniquement)
+						<i className="far fa-calendar-alt"></i> Date souhaitée
 					</label>
-					<div className="date-input-container">
-						<input type="date" id="date" name="date" value={formData.date} onChange={handleChange} min={getMinDate()} max={getMaxDate()} className="weekend-only-date" required />
-						<i className="fas date-calendar-icon"></i>
-					</div>
-					{formData.date && !isWeekend(formData.date) && (
-						<p className="error-message">
-							<i className="fas fa-exclamation-circle"></i> Uniquement samedi ou dimanche
+					{weeklySchedule && (
+						<p className="opening-days-info">
+							<i className="fas fa-info-circle"></i> Jours d'ouverture: <strong>{getOpenDaysText()}</strong> sauf exception
 						</p>
 					)}
+					<div className="date-input-container">
+						<input type="date" id="date" name="date" value={formData.date} onChange={handleChange} min={getMinDate()} max={getMaxDate()} required />
+						<i className="fas date-calendar-icon"></i>
+					</div>
 				</div>
 
 				<div className="form-row">

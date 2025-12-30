@@ -8,6 +8,7 @@ function BlockedDatesManager() {
 	const [showForm, setShowForm] = useState(false);
 
 	// Form state
+	const [actionType, setActionType] = useState("block"); // "block" ou "open"
 	const [blockMode, setBlockMode] = useState("single"); // "single" ou "range"
 	const [newDate, setNewDate] = useState("");
 	const [startDate, setStartDate] = useState("");
@@ -35,7 +36,7 @@ function BlockedDatesManager() {
 
 			setBlockedDates(dates);
 		} catch (error) {
-			console.error("Erreur chargement dates bloquées:", error);
+			console.error("Erreur chargement dates:", error);
 		} finally {
 			setLoading(false);
 		}
@@ -66,7 +67,7 @@ function BlockedDatesManager() {
 	const addBlockedDate = async (e) => {
 		e.preventDefault();
 
-		let datesToBlock = [];
+		let datesToProcess = [];
 
 		// Mode période
 		if (blockMode === "range") {
@@ -78,28 +79,29 @@ function BlockedDatesManager() {
 				alert("La date de début doit être avant la date de fin");
 				return;
 			}
-			datesToBlock = getDatesBetween(startDate, endDate);
+			datesToProcess = getDatesBetween(startDate, endDate);
 		} else {
 			// Mode date unique
 			if (!newDate) {
 				alert("Veuillez sélectionner une date");
 				return;
 			}
-			datesToBlock = [newDate];
+			datesToProcess = [newDate];
 		}
 
-		if (blockType === "hours" && selectedHours.length === 0) {
+		if (blockType === "hours" && selectedHours.length === 0 && actionType === "block") {
 			alert("Veuillez sélectionner au moins une heure");
 			return;
 		}
 
 		try {
 			// Créer un document pour chaque date
-			const promises = datesToBlock.map(async (date) => {
+			const promises = datesToProcess.map(async (date) => {
 				const docData = {
 					date: date,
-					reason: reason || "Fermé",
+					reason: reason || (actionType === "open" ? "Ouvert exceptionnellement" : "Fermé"),
 					allDay: blockType === "allDay",
+					actionType: actionType, // "block" ou "open"
 				};
 
 				if (blockType === "hours") {
@@ -126,11 +128,12 @@ function BlockedDatesManager() {
 			setBlockType("allDay");
 			setSelectedHours([]);
 			setBlockMode("single");
+			setActionType("block");
 			setShowForm(false);
 
 			// Reload
 			loadBlockedDates();
-			alert(`${datesToBlock.length} date(s) bloquée(s) avec succès!`);
+			alert(`${datesToProcess.length} date(s) ${actionType === "open" ? "ouverte(s)" : "bloquée(s)"} avec succès!`);
 		} catch (error) {
 			console.error("Erreur ajout date:", error);
 			alert("Erreur lors de l'ajout: " + error.message);
@@ -138,21 +141,21 @@ function BlockedDatesManager() {
 	};
 
 	const deleteBlockedDate = async (id) => {
-		if (!window.confirm("Débloquer cette date?")) return;
+		if (!window.confirm("Supprimer cette date?")) return;
 
 		try {
 			await deleteDoc(doc(db, "blockedDates", id));
 			setBlockedDates(blockedDates.filter((d) => d.id !== id));
-			alert("Date débloquée!");
+			alert("Date supprimée!");
 		} catch (error) {
 			console.error("Erreur suppression:", error);
 			alert("Erreur lors de la suppression");
 		}
 	};
 
-	// Débloquer toute une période
+	// Supprimer toute une période
 	const deleteRange = async (rangeStart, rangeEnd) => {
-		if (!window.confirm(`Débloquer toutes les dates du ${rangeStart} au ${rangeEnd}?`)) return;
+		if (!window.confirm(`Supprimer toutes les dates du ${rangeStart} au ${rangeEnd}?`)) return;
 
 		try {
 			const rangeDates = blockedDates.filter((d) => d.isRange && d.rangeStart === rangeStart && d.rangeEnd === rangeEnd);
@@ -162,7 +165,7 @@ function BlockedDatesManager() {
 
 			setBlockedDates(blockedDates.filter((d) => !(d.isRange && d.rangeStart === rangeStart && d.rangeEnd === rangeEnd)));
 
-			alert(`Période débloquée (${rangeDates.length} dates)!`);
+			alert(`Période supprimée (${rangeDates.length} dates)!`);
 		} catch (error) {
 			console.error("Erreur suppression:", error);
 			alert("Erreur lors de la suppression");
@@ -176,7 +179,7 @@ function BlockedDatesManager() {
 
 		blockedDates.forEach((item) => {
 			if (item.isRange) {
-				const key = `${item.rangeStart}_${item.rangeEnd}_${item.reason}`;
+				const key = `${item.rangeStart}_${item.rangeEnd}_${item.reason}_${item.actionType}`;
 				if (!ranges[key]) {
 					ranges[key] = {
 						rangeStart: item.rangeStart,
@@ -184,6 +187,7 @@ function BlockedDatesManager() {
 						reason: item.reason,
 						allDay: item.allDay,
 						blockedHours: item.blockedHours,
+						actionType: item.actionType,
 						dates: [],
 					};
 				}
@@ -200,12 +204,17 @@ function BlockedDatesManager() {
 
 	const { ranges, singles } = groupByRange();
 
+	// Séparer les dates bloquées et ouvertes
+	const blockedRanges = ranges.filter((r) => r.actionType === "block" || !r.actionType);
+	const openRanges = ranges.filter((r) => r.actionType === "open");
+	const blockedSingles = singles.filter((s) => s.actionType === "block" || !s.actionType);
+	const openSingles = singles.filter((s) => s.actionType === "open");
+
 	return (
 		<div className="blocked-dates-manager">
 			<div className="section-header">
 				<h2>
-					{" "}
-					<i className="fa-solid fa-lock"></i> Dates Bloquées ({blockedDates.length})
+					<i className="fa-solid fa-lock"></i> Gestion des Dates ({blockedDates.length})
 				</h2>
 				<button onClick={() => setShowForm(!showForm)} className="add-button">
 					{showForm ? (
@@ -214,7 +223,7 @@ function BlockedDatesManager() {
 						</>
 					) : (
 						<>
-							<i className="fa-solid fa-plus"></i> Bloquer une date
+							<i className="fa-solid fa-plus"></i> Ajouter une date
 						</>
 					)}
 				</button>
@@ -224,8 +233,28 @@ function BlockedDatesManager() {
 				<form onSubmit={addBlockedDate} className="block-date-form">
 					<div className="form-group">
 						<label>
-							{" "}
-							<i className="fa-solid fa-calendar"></i> Mode de blocage
+							<i className="fa-solid fa-toggle-on"></i> Action
+						</label>
+						<div className="radio-group">
+							<label className="radio-label-primary">
+								<input type="radio" value="block" checked={actionType === "block"} onChange={(e) => setActionType(e.target.value)} />
+								<span className="block-badge">
+									<i className="fa-solid fa-lock"></i> Bloquer (Fermer)
+								</span>
+							</label>
+							<label className="radio-label-success">
+								<input type="radio" value="open" checked={actionType === "open"} onChange={(e) => setActionType(e.target.value)} />
+								<span className="open-badge">
+									<i className="fa-solid fa-circle-check"></i> Ouvrir exceptionnellement
+								</span>
+							</label>
+						</div>
+						<p className="help-text">{actionType === "block" ? " Fermez des dates normalement ouvertes (ex: vacances, week-end de Noël)" : "Ouvrez des dates normalement fermées (ex: vendredi exceptionnel)"}</p>
+					</div>
+
+					<div className="form-group">
+						<label>
+							<i className="fa-solid fa-calendar"></i> Mode de sélection
 						</label>
 						<div className="radio-group">
 							<label>
@@ -242,7 +271,7 @@ function BlockedDatesManager() {
 					{blockMode === "single" ? (
 						<div className="form-group">
 							<label>
-								<i className="fa-solid fa-calendar-day"></i> Date à bloquer
+								<i className="fa-solid fa-calendar-day"></i> Date à {actionType === "open" ? "ouvrir" : "bloquer"}
 							</label>
 							<input type="date" value={newDate} onChange={(e) => setNewDate(e.target.value)} required />
 						</div>
@@ -267,125 +296,188 @@ function BlockedDatesManager() {
 						<label>
 							<i className="fa-solid fa-comment"></i> Raison
 						</label>
-						<input type="text" value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Ex: Congés d'été, Vacances de Noël, etc." />
+						<input type="text" value={reason} onChange={(e) => setReason(e.target.value)} placeholder={actionType === "open" ? "Ex: Vendredi exceptionnel, Jour férié compensé" : "Ex: Congés d'été, Vacances de Noël"} />
 					</div>
 
-					<div className="form-group">
-						<label>
-							<i className="fa-solid fa-clock"></i> Type de blocage
-						</label>
-						<div className="radio-group">
-							<label>
-								<input type="radio" value="allDay" checked={blockType === "allDay"} onChange={(e) => setBlockType(e.target.value)} />
-								Toute la journée
-							</label>
-							<label>
-								<input type="radio" value="hours" checked={blockType === "hours"} onChange={(e) => setBlockType(e.target.value)} />
-								Heures spécifiques
-							</label>
-						</div>
-					</div>
-
-					{blockType === "hours" && (
-						<div className="form-group">
-							<label>Sélectionnez les heures à bloquer:</label>
-							<div className="hours-grid">
-								{allHours.map((hour) => (
-									<button key={hour} type="button" onClick={() => toggleHour(hour)} className={`hour-button ${selectedHours.includes(hour) ? "selected" : ""}`}>
-										{hour}
-									</button>
-								))}
+					{actionType === "block" && (
+						<>
+							<div className="form-group">
+								<label>
+									<i className="fa-solid fa-clock"></i> Type de blocage
+								</label>
+								<div className="radio-group">
+									<label>
+										<input type="radio" value="allDay" checked={blockType === "allDay"} onChange={(e) => setBlockType(e.target.value)} />
+										Toute la journée
+									</label>
+									<label>
+										<input type="radio" value="hours" checked={blockType === "hours"} onChange={(e) => setBlockType(e.target.value)} />
+										Heures spécifiques
+									</label>
+								</div>
 							</div>
-						</div>
+
+							{blockType === "hours" && (
+								<div className="form-group">
+									<label>Sélectionnez les heures à bloquer:</label>
+									<div className="hours-grid">
+										{allHours.map((hour) => (
+											<button key={hour} type="button" onClick={() => toggleHour(hour)} className={`hour-button ${selectedHours.includes(hour) ? "selected" : ""}`}>
+												{hour}
+											</button>
+										))}
+									</div>
+								</div>
+							)}
+						</>
 					)}
 
-					<button type="submit" className="submit-button">
-						<i className="fa-solid fa-lock"></i> Bloquer {blockMode === "range" ? "cette période" : "cette date"}
+					<button type="submit" className={`submit-button ${actionType === "open" ? "submit-open" : "submit-block"}`}>
+						{actionType === "open" ? (
+							<>
+								<i className="fa-solid fa-lock-open"></i> Ouvrir {blockMode === "range" ? "cette période" : "cette date"}
+							</>
+						) : (
+							<>
+								<i className="fa-solid fa-lock"></i> Bloquer {blockMode === "range" ? "cette période" : "cette date"}
+							</>
+						)}
 					</button>
 				</form>
 			)}
 
 			<div className="blocked-dates-list">
-				{/* Périodes */}
-				{ranges.length > 0 && (
-					<div className="ranges-section">
+				{/* Dates OUVERTES exceptionnellement */}
+				{(openRanges.length > 0 || openSingles.length > 0) && (
+					<div className="open-section">
 						<h3>
-							<i className="fa-solid fa-calendar"></i> Périodes bloquées
+							<i className="fa-solid fa-lock-open"></i> Dates Ouvertes Exceptionnellement
 						</h3>
-						{ranges.map((range, index) => (
-							<div key={index} className="blocked-range-card">
-								<div className="date-info">
-									<h3>
-										<i className="fa-solid fa-calendar"></i> Du {new Date(range.rangeStart + "T00:00:00").toLocaleDateString("fr-FR")} au {new Date(range.rangeEnd + "T00:00:00").toLocaleDateString("fr-FR")}
-									</h3>
-									<p className="reason">{range.reason}</p>
-									<p className="date-count">{range.dates.length} jour(s) bloqué(s)</p>
-									{range.allDay ? (
-										<span className="badge all-day">Toute la journée</span>
-									) : (
-										<div className="blocked-hours">
-											<span className="badge">Heures bloquées:</span>
-											<div className="hours-list">
-												{range.blockedHours?.map((hour) => (
-													<span key={hour} className="hour-tag">
-														{hour}
-													</span>
-												))}
-											</div>
-										</div>
-									)}
+
+						{/* Périodes ouvertes */}
+						{openRanges.length > 0 &&
+							openRanges.map((range, index) => (
+								<div key={index} className="open-range-card">
+									<div className="date-info">
+										<h3>
+											<i className="fa-solid fa-calendar-days"></i> Du {new Date(range.rangeStart + "T00:00:00").toLocaleDateString("fr-FR")} au {new Date(range.rangeEnd + "T00:00:00").toLocaleDateString("fr-FR")}
+										</h3>
+										<p className="reason">{range.reason}</p>
+										<p className="date-count">{range.dates.length} jour(s) ouvert(s)</p>
+										<span className="badge open-badge">
+											<i className="fa-solid fa-circle-check"></i> Ouvert
+										</span>
+									</div>
+									<button onClick={() => deleteRange(range.rangeStart, range.rangeEnd)} className="delete-button">
+										<i className="fa-solid fa-trash-can"></i> Supprimer
+									</button>
 								</div>
-								<button onClick={() => deleteRange(range.rangeStart, range.rangeEnd)} className="unblock-button">
-									<i className="fa-solid fa-lock-open"></i> Débloquer la période
-								</button>
-							</div>
-						))}
+							))}
+
+						{/* Dates uniques ouvertes */}
+						{openSingles.length > 0 &&
+							openSingles.map((item) => (
+								<div key={item.id} className="open-date-card">
+									<div className="date-info">
+										<h3>
+											<i className="fa-solid fa-calendar-day"></i>{" "}
+											{new Date(item.date + "T00:00:00").toLocaleDateString("fr-FR", {
+												weekday: "long",
+												year: "numeric",
+												month: "long",
+												day: "numeric",
+											})}
+										</h3>
+										<p className="reason">{item.reason}</p>
+										<span className="badge open-badge">
+											<i className="fa-solid fa-circle-check"></i> Ouvert
+										</span>
+									</div>
+									<button onClick={() => deleteBlockedDate(item.id)} className="delete-button">
+										<i className="fa-solid fa-trash-can"></i> Supprimer
+									</button>
+								</div>
+							))}
 					</div>
 				)}
 
-				{/* Dates uniques */}
-				{singles.length > 0 && (
-					<div className="singles-section">
+				{/* Dates BLOQUÉES */}
+				{(blockedRanges.length > 0 || blockedSingles.length > 0) && (
+					<div className="blocked-section">
 						<h3>
-							<i className="fa-solid fa-calendar"></i> Dates individuelles
+							<i className="fa-solid fa-lock"></i> Dates Bloquées
 						</h3>
-						{singles.map((item) => (
-							<div key={item.id} className="blocked-date-card">
-								<div className="date-info">
-									<h3>
-										<i className="fa-solid fa-calendar"></i>{" "}
-										{new Date(item.date + "T00:00:00").toLocaleDateString("fr-FR", {
-											weekday: "long",
-											year: "numeric",
-											month: "long",
-											day: "numeric",
-										})}
-									</h3>
-									<p className="reason">{item.reason}</p>
-									{item.allDay ? (
-										<span className="badge all-day">Toute la journée</span>
-									) : (
-										<div className="blocked-hours">
-											<span className="badge">Heures bloquées:</span>
-											<div className="hours-list">
-												{item.blockedHours?.map((hour) => (
-													<span key={hour} className="hour-tag">
-														{hour}
-													</span>
-												))}
+
+						{/* Périodes bloquées */}
+						{blockedRanges.length > 0 &&
+							blockedRanges.map((range, index) => (
+								<div key={index} className="blocked-range-card">
+									<div className="date-info">
+										<h3>
+											<i className="fa-solid fa-calendar-days"></i> Du {new Date(range.rangeStart + "T00:00:00").toLocaleDateString("fr-FR")} au {new Date(range.rangeEnd + "T00:00:00").toLocaleDateString("fr-FR")}
+										</h3>
+										<p className="reason">{range.reason}</p>
+										<p className="date-count">{range.dates.length} jour(s) bloqué(s)</p>
+										{range.allDay ? (
+											<span className="badge all-day">Toute la journée</span>
+										) : (
+											<div className="blocked-hours">
+												<span className="badge">Heures bloquées:</span>
+												<div className="hours-list">
+													{range.blockedHours?.map((hour) => (
+														<span key={hour} className="hour-tag">
+															{hour}
+														</span>
+													))}
+												</div>
 											</div>
-										</div>
-									)}
+										)}
+									</div>
+									<button onClick={() => deleteRange(range.rangeStart, range.rangeEnd)} className="delete-button">
+										<i className="fa-solid fa-trash-can"></i> Supprimer
+									</button>
 								</div>
-								<button onClick={() => deleteBlockedDate(item.id)} className="unblock-button">
-									<i className="fa-solid fa-lock-open"></i> Débloquer
-								</button>
-							</div>
-						))}
+							))}
+
+						{/* Dates uniques bloquées */}
+						{blockedSingles.length > 0 &&
+							blockedSingles.map((item) => (
+								<div key={item.id} className="blocked-date-card">
+									<div className="date-info">
+										<h3>
+											<i className="fa-solid fa-calendar-day"></i>{" "}
+											{new Date(item.date + "T00:00:00").toLocaleDateString("fr-FR", {
+												weekday: "long",
+												year: "numeric",
+												month: "long",
+												day: "numeric",
+											})}
+										</h3>
+										<p className="reason">{item.reason}</p>
+										{item.allDay ? (
+											<span className="badge all-day">Toute la journée</span>
+										) : (
+											<div className="blocked-hours">
+												<span className="badge">Heures bloquées:</span>
+												<div className="hours-list">
+													{item.blockedHours?.map((hour) => (
+														<span key={hour} className="hour-tag">
+															{hour}
+														</span>
+													))}
+												</div>
+											</div>
+										)}
+									</div>
+									<button onClick={() => deleteBlockedDate(item.id)} className="delete-button">
+										<i className="fa-solid fa-trash-can"></i> Supprimer
+									</button>
+								</div>
+							))}
 					</div>
 				)}
 
-				{blockedDates.length === 0 && <p className="no-dates">Aucune date bloquée</p>}
+				{blockedDates.length === 0 && <p className="no-dates">Aucune date configurée</p>}
 			</div>
 		</div>
 	);
