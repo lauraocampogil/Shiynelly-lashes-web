@@ -1,11 +1,13 @@
 import { useState, useEffect, useRef } from "react";
 import { prestations } from "../../constants/index.js";
 import SpotlightCard from "./SpotlightCard.jsx";
-import { logAnalyticsEvent } from "../firebase/config.js";
+import { logAnalyticsEvent, db } from "../firebase/config.js";
+import { doc, getDoc } from "firebase/firestore";
 
 function NosPrestations() {
 	const [openResults, setOpenResults] = useState({});
 	const [isVisible, setIsVisible] = useState(false);
+	const [isModelServiceOpen, setIsModelServiceOpen] = useState(false);
 	const sectionRef = useRef(null);
 
 	useEffect(() => {
@@ -25,6 +27,23 @@ function NosPrestations() {
 
 		return () => observer.disconnect();
 	}, []);
+
+	useEffect(() => {
+		checkModelServiceStatus();
+	}, []);
+
+	const checkModelServiceStatus = async () => {
+		try {
+			const docRef = doc(db, "settings", "modelService");
+			const docSnap = await getDoc(docRef);
+
+			setIsModelServiceOpen(docSnap.exists() ? docSnap.data().isOpen : false);
+		} catch (error) {
+			console.error("Erreur vérification service modèle:", error);
+			setIsModelServiceOpen(false);
+		}
+	};
+
 	const toggleResult = (index) => {
 		const isOpening = !openResults[index];
 
@@ -42,6 +61,7 @@ function NosPrestations() {
 			[index]: !prev[index],
 		}));
 	};
+
 	return (
 		<section id="nosprestations" ref={sectionRef}>
 			<div className={`prestations-container ${isVisible ? "fade-in-up" : ""}`}>
@@ -50,18 +70,23 @@ function NosPrestations() {
 				<div className="prestations-grid">
 					{prestations.map((prestation, index) => (
 						<SpotlightCard key={index} className="prestation-card" spotlightColor="rgba(195, 158, 116, 0.5)">
+							{/* Badge dynamique pour le service Modèle */}
+							{prestation.isModelService && <span className={`model-badge ${isModelServiceOpen ? "open" : "closed"}`}>{isModelServiceOpen ? "Disponible" : "Actuellement indisponible"}</span>}
+
 							<div className="prestation-content">
 								<h3>{prestation.title}</h3>
 								<p className="prestation-description">{prestation.description}</p>
 								<span className="prestation-price">{prestation.price}</span>
 
-								<button className={`result-toggle ${openResults[index] ? "active" : ""}`} onClick={() => toggleResult(index)}>
-									Résultat
-									<i className={`fas fa-arrow-down arrow-icon ${openResults[index] ? "rotated" : ""}`}></i>
-								</button>
+								<div className="prestation-result-container">
+									<button className={`result-toggle ${openResults[index] ? "active" : ""}`} onClick={() => toggleResult(index)}>
+										Résultat
+										<i className={`fas fa-arrow-down arrow-icon ${openResults[index] ? "rotated" : ""}`}></i>
+									</button>
 
-								<div className={`result-content-wrapper ${openResults[index] ? "show" : ""}`}>
-									<div className="result-text">{prestation.result}</div>
+									<div className={`result-content-wrapper ${openResults[index] ? "show" : ""}`}>
+										<div className="result-text">{prestation.result}</div>
+									</div>
 								</div>
 							</div>
 						</SpotlightCard>

@@ -5,13 +5,14 @@ import AdminLogin from "./AdminLogin.jsx";
 import BookingsList from "./BookingsList.jsx";
 import BlockedDatesManager from "./BlockedDatesManager.jsx";
 import WeeklyAvailability from "./WeeklyAvailability.jsx";
+import ToggleModelService from "./ToggleModelService.jsx";
 import "./AdminPanel.css";
 import "./AdminPanelMobile.css";
 
 function AdminPanel() {
 	const [user, setUser] = useState(null);
 	const [loading, setLoading] = useState(true);
-	const [activeTab, setActiveTab] = useState("bookings"); // "bookings", "weekly", ou "blocked"
+	const [activeTab, setActiveTab] = useState("bookings");
 
 	useEffect(() => {
 		const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -52,6 +53,9 @@ function AdminPanel() {
 					<button className={`nav-btn ${activeTab === "blocked" ? "active" : ""}`} onClick={() => setActiveTab("blocked")}>
 						<i className="fa-solid fa-lock"></i> Dates Bloquées
 					</button>
+					<button className={`nav-btn ${activeTab === "toggle-model" ? "active" : ""}`} onClick={() => setActiveTab("toggle-model")}>
+						<i className="fa-solid fa-toggle-on"></i> Service Modèle
+					</button>
 					<button onClick={handleLogout} className="logout-button">
 						<i className="fa-solid fa-arrow-right-from-bracket"></i> Déconnexion
 					</button>
@@ -62,6 +66,7 @@ function AdminPanel() {
 				{activeTab === "bookings" && <BookingsList />}
 				{activeTab === "weekly" && <WeeklyAvailability />}
 				{activeTab === "blocked" && <BlockedDatesManager />}
+				{activeTab === "toggle-model" && <ToggleModelService />}
 			</main>
 		</div>
 	);

@@ -312,6 +312,7 @@ body {
 .hero-cta:hover {
 	opacity: 0.9;
 }
+
 /* NosPrestations Styles */
 
 h2 {
@@ -321,6 +322,7 @@ h2 {
 	margin-top: 2rem;
 	color: #312019;
 }
+
 .prestations-container {
 	padding: 4rem 2rem;
 	max-width: 1400px;
@@ -335,54 +337,57 @@ h2 {
 	color: #312019;
 }
 
+/* NOUVEAU GRID 4x4 */
 .prestations-grid {
 	display: grid;
-	grid-template-columns: repeat(6, 1fr);
-	gap: 2rem;
-	align-items: start;
+	grid-template-columns: repeat(4, 1fr); /* 4 colonnes */
+	grid-column-gap: 2.5rem; /* Espace horizontal */
+	grid-row-gap: 6rem; /* Espace vertical FORCÉ */
+	align-items: stretch; /* Toutes les cartes même hauteur */
 }
 
-/* First 3 cards span 2 columns each */
-.prestations-grid .prestation-card:nth-child(1),
-.prestations-grid .prestation-card:nth-child(2),
-.prestations-grid .prestation-card:nth-child(3) {
-	grid-column: span 2;
+/* Chaque carte occupe 1 colonne */
+.prestations-grid .prestation-card {
+	grid-column: span 1;
 }
 
-/* Cards 4 and 5 span 3 columns each to fill the bottom */
-.prestations-grid .prestation-card:nth-child(4) {
-	grid-column: 1 / 4;
-}
-
-.prestations-grid .prestation-card:nth-child(5) {
-	grid-column: 4 / 7;
+/* Style spécial pour la carte Modèle (dernière) */
+.prestations-grid .prestation-card:last-child .prestation-price {
+	color: #8d5d41;
+	font-size: 1.6rem;
 }
 
 .prestation-card {
 	padding: 2rem;
 	box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 	position: relative;
-	height: fit-content;
+	height: 100%;
+	display: flex;
+	flex-direction: column;
 }
 
 .prestation-content {
 	position: relative;
 	z-index: 2;
+	display: flex;
+	flex-direction: column;
+	height: 100%;
 }
 
 .prestation-card h3 {
 	font-family: "Gemola", sans-serif;
 	font-size: 1.8rem;
 	color: #312019;
-	margin-bottom: 1rem;
+	margin-bottom: 0.5rem;
 }
 
 .prestation-description {
 	color: #666;
 	font-size: 1rem;
 	line-height: 1.6;
-	margin-bottom: 1.5rem;
-	min-height: 60px;
+	margin-bottom: 0.5rem;
+	min-height: 50px;
+	flex-grow: 1;
 }
 
 .prestation-price {
@@ -391,16 +396,17 @@ h2 {
 	font-weight: bold;
 	color: #8d5d41;
 	margin-bottom: 1.5rem;
+	margin-top: -2rem;
 }
 
 .prestation-result-container {
-	margin-top: 1rem;
+	margin-top: auto; /* Pousse le bouton en bas */
 	position: relative;
 }
 
 .result-toggle {
 	font-family: "DM Sans", sans-serif;
-	width: 50%;
+	width: 100%;
 	padding: 0.75rem 2rem;
 	background-color: #a9734d;
 	color: white;
@@ -418,12 +424,12 @@ h2 {
 
 .result-toggle:hover {
 	background-color: #8f5f3f;
+	transform: translateY(-2px);
 }
 
 .result-toggle.active {
-	background-color: #a9734d;
+	background-color: #8d5d41;
 	color: white;
-	border-color: #a9734d;
 }
 
 .arrow-icon {
@@ -455,6 +461,7 @@ h2 {
 	font-size: 0.95rem;
 	line-height: 1.6;
 }
+
 /* Card Spotlight */
 .card-spotlight {
 	position: relative;
@@ -486,6 +493,21 @@ h2 {
 .card-spotlight:hover {
 	transform: translateY(-4px);
 }
+
+/* Badge Modèle */
+.model-badge {
+	position: absolute;
+	top: 1rem;
+	right: 1rem;
+	background: #8d5d41;
+	color: white;
+	padding: 0.4rem 0.8rem;
+	border-radius: 20px;
+	font-size: 0.8rem;
+	font-weight: 600;
+	z-index: 3;
+}
+
 /* Reservation */
 .reservation-container {
 	background: #f3ede2;
@@ -1089,6 +1111,11 @@ h2 {
 	}
 }
 /* Responsive Design */
+@media (max-width: 1200px) {
+	.prestations-grid {
+		grid-template-columns: repeat(3, 1fr);
+	}
+}
 @media (max-width: 1024px) {
 	.navbar {
 		position: fixed;
@@ -1140,6 +1167,24 @@ h2 {
 	.footer-main {
 		grid-template-columns: 1fr 1fr;
 		gap: 2rem;
+	}
+}
+/* Tablette petite (2 colonnes) */
+@media (max-width: 900px) {
+	.prestations-grid {
+		grid-template-columns: repeat(2, 1fr);
+	}
+
+	.prestations-container h2 {
+		font-size: 2.5rem;
+	}
+
+	.prestation-card h3 {
+		font-size: 1.6rem;
+	}
+
+	.result-toggle {
+		width: 100%;
 	}
 }
 @media (max-width: 768px) {
@@ -1202,14 +1247,16 @@ h2 {
 
 	.prestations-grid {
 		grid-template-columns: 1fr;
-		gap: 1.5rem;
+		gap: 4rem;
 	}
 
 	.prestations-grid .prestation-card:nth-child(1),
 	.prestations-grid .prestation-card:nth-child(2),
 	.prestations-grid .prestation-card:nth-child(3),
 	.prestations-grid .prestation-card:nth-child(4),
-	.prestations-grid .prestation-card:nth-child(5) {
+	.prestations-grid .prestation-card:nth-child(5),
+	.prestations-grid .prestation-card:nth-child(6),
+	.prestations-grid .prestation-card:nth-child(7) {
 		grid-column: 1;
 		grid-row: auto;
 	}
@@ -1228,7 +1275,6 @@ h2 {
 	}
 	.booking-container {
 		padding: 2rem 1rem;
-		margin: 2rem 1rem;
 	}
 
 	.booking-container h2 {
@@ -1328,7 +1374,7 @@ h2 {
 		width: 100%;
 	}
 	.reservation-container {
-		padding: 3rem 1.5rem;
+		padding: 4rem 2rem;
 	}
 
 	.reservation-container h2 {
@@ -1387,6 +1433,47 @@ h2 {
 		flex-direction: column;
 		text-align: center;
 	}
+	.prestations-container {
+		padding: 2rem 1rem;
+	}
+
+	.prestations-grid {
+		grid-template-columns: 1fr; /* Une seule colonne sur mobile */
+		grid-column-gap: 0; /* Pas d'espace horizontal nécessaire */
+		grid-row-gap: 2rem;
+	}
+
+	.prestations-container h2 {
+		font-size: 2rem;
+		margin-bottom: 2rem;
+	}
+
+	.prestation-card {
+		padding: 1.5rem;
+	}
+
+	.prestation-card h3 {
+		font-size: 1.5rem;
+	}
+
+	.prestation-description {
+		font-size: 0.95rem;
+		min-height: auto;
+	}
+
+	.prestation-price {
+		font-size: 1.5rem;
+	}
+
+	.result-toggle {
+		padding: 0.6rem 1.5rem;
+		font-size: 0.95rem;
+	}
+
+	.model-badge {
+		font-size: 0.75rem;
+		padding: 0.3rem 0.6rem;
+	}
 }
 @media (max-width: 400px) {
 	.hero-content {
@@ -1400,6 +1487,16 @@ h2 {
 	.hero-subtitle {
 		width: 90%;
 		font-size: 1.1rem;
+	}
+	.prestations-container h2 {
+		font-size: 1.8rem;
+	}
+	.prestations-grid {
+		gap: 5rem;
+	}
+
+	.prestation-card h3 {
+		font-size: 1.3rem;
 	}
 }
 @media (max-width: 360px) {
@@ -1434,7 +1531,7 @@ h2 {
 	}
 
 	.prestations-grid {
-		gap: 1rem;
+		gap: 4rem;
 	}
 
 	.prestation-card {

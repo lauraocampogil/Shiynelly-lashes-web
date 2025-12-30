@@ -20,11 +20,38 @@ function BookingForm() {
 	const [availableSlots, setAvailableSlots] = useState([]);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [weeklySchedule, setWeeklySchedule] = useState(null);
+	const [availableServices, setAvailableServices] = useState([]);
 
-	// Charger le planning hebdomadaire au démarrage
+	// Charger le planning hebdomadaire et le statut du service modèle au démarrage
 	useEffect(() => {
 		loadWeeklySchedule();
+		checkModelServiceStatus();
 	}, []);
+
+	// Charger le statut du service modèle
+	const checkModelServiceStatus = async () => {
+		try {
+			const docRef = doc(db, "settings", "modelService");
+			const docSnap = await getDoc(docRef);
+
+			const isOpen = docSnap.exists() ? docSnap.data().isOpen : false;
+
+			// Filtrer les services disponibles
+			const filtered = services.filter((service) => {
+				// Si c'est le service modèle et qu'il est fermé, on l'exclut
+				if (service.isModelService && !isOpen) {
+					return false;
+				}
+				return true;
+			});
+
+			setAvailableServices(filtered);
+		} catch (error) {
+			console.error("Erreur vérification service modèle:", error);
+			// En cas d'erreur, on affiche tous les services sauf le modèle
+			setAvailableServices(services.filter((s) => !s.isModelService));
+		}
+	};
 
 	// Charger le planning hebdomadaire depuis Firebase
 	const loadWeeklySchedule = async () => {
@@ -36,7 +63,6 @@ function BookingForm() {
 				setWeeklySchedule(docSnap.data());
 			} else {
 				// Planning par défaut si pas encore configuré
-				// Week-ends OUVERTS, semaine FERMÉE
 				setWeeklySchedule({
 					monday: { open: false, label: "Lundi" },
 					tuesday: { open: false, label: "Mardi" },
@@ -49,7 +75,6 @@ function BookingForm() {
 			}
 		} catch (error) {
 			console.error("Erreur chargement planning:", error);
-			// Planning par défaut en cas d'erreur: Week-ends OUVERTS
 			setWeeklySchedule({
 				monday: { open: false, label: "Lundi" },
 				tuesday: { open: false, label: "Mardi" },
@@ -67,7 +92,7 @@ function BookingForm() {
 		if (!weeklySchedule) return false;
 
 		const date = new Date(dateString + "T00:00:00");
-		const dayIndex = date.getDay(); // 0 = dimanche, 1 = lundi, etc.
+		const dayIndex = date.getDay();
 
 		const dayMap = {
 			0: "sunday",
@@ -90,18 +115,15 @@ function BookingForm() {
 			const startMinutes = hours * 60 + minutes;
 			const endMinutes = startMinutes + duration;
 
-			// Récupérer toutes les réservations pour cette date
 			const q = query(collection(db, "reservations"), where("date", "==", date));
 			const querySnapshot = await getDocs(q);
 
-			// Vérifier les conflits
 			for (const doc of querySnapshot.docs) {
 				const booking = doc.data();
 				const [bookingHours, bookingMinutes] = booking.heure.split(":").map(Number);
 				const bookingStart = bookingHours * 60 + bookingMinutes;
 				const bookingEnd = bookingStart + booking.duration;
 
-				// Vérifier si les créneaux se chevauchent
 				if ((startMinutes >= bookingStart && startMinutes < bookingEnd) || (endMinutes > bookingStart && endMinutes <= bookingEnd) || (startMinutes <= bookingStart && endMinutes >= bookingEnd)) {
 					return false;
 				}
@@ -119,7 +141,6 @@ function BookingForm() {
 			const q = query(collection(db, "blockedDates"), where("date", "==", date));
 			const querySnapshot = await getDocs(q);
 
-			// Vérifier s'il y a une date OUVERTE exceptionnellement
 			let hasOpenException = false;
 			let hasBlockException = false;
 
@@ -132,10 +153,7 @@ function BookingForm() {
 				}
 			});
 
-			// Si date ouverte exceptionnellement, elle n'est PAS bloquée
 			if (hasOpenException) return false;
-
-			// Si date bloquée, elle est bloquée
 			if (hasBlockException) return true;
 
 			return false;
@@ -175,7 +193,6 @@ function BookingForm() {
 		const startAfternoon = 14 * 60;
 		const endAfternoon = 19 * 60;
 
-		// Récupérer les heures bloquées pour cette date
 		const blockedHours = await getBlockedHours(selectedDate);
 
 		const allSlots = [];
@@ -212,9 +229,8 @@ function BookingForm() {
 
 	const handleServiceChange = async (e) => {
 		const serviceId = e.target.value;
-		const selectedService = services.find((s) => s.id === serviceId);
+		const selectedService = availableServices.find((s) => s.id === serviceId);
 
-		// TRACKING
 		if (selectedService) {
 			logAnalyticsEvent("service_selected", {
 				service_name: selectedService.name,
@@ -235,13 +251,11 @@ function BookingForm() {
 		const { name, value } = e.target;
 
 		if (name === "date") {
-			// Si l'utilisateur efface la date ou clique juste sur le calendrier
 			if (!value) {
 				setFormData({ ...formData, [name]: value });
 				return;
 			}
 
-			// Vérifier d'abord si la date est OUVERTE exceptionnellement
 			const q = query(collection(db, "blockedDates"), where("date", "==", value));
 			const querySnapshot = await getDocs(q);
 
@@ -253,9 +267,7 @@ function BookingForm() {
 				}
 			});
 
-			// Si date ouverte exceptionnellement, on autorise même si normalement fermée
 			if (!isExceptionallyOpen) {
-				// Vérifier si le jour est ouvert selon le planning hebdomadaire
 				if (!isDayOpen(value)) {
 					const date = new Date(value + "T00:00:00");
 					const dayName = date.toLocaleDateString("fr-FR", { weekday: "long" });
@@ -265,7 +277,6 @@ function BookingForm() {
 				}
 			}
 
-			// Vérifier si la date est bloquée
 			const blocked = await isDateBlocked(value);
 			if (blocked) {
 				alert("Cette date n'est pas disponible. Veuillez choisir une autre date.");
@@ -277,9 +288,8 @@ function BookingForm() {
 				selected_date: value,
 			});
 
-			// Générer les créneaux horaires
 			if (formData.service) {
-				const selectedService = services.find((s) => s.id === formData.service);
+				const selectedService = availableServices.find((s) => s.id === formData.service);
 				const slots = await generateTimeSlots(selectedService.duration, value);
 				setAvailableSlots(slots);
 			}
@@ -291,7 +301,6 @@ function BookingForm() {
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 
-		// Vérifier que le jour est ouvert
 		if (!isDayOpen(formData.date)) {
 			alert("Ce jour n'est pas disponible pour les réservations");
 			return;
@@ -299,19 +308,16 @@ function BookingForm() {
 
 		setIsSubmitting(true);
 
-		const selectedService = services.find((s) => s.id === formData.service);
+		const selectedService = availableServices.find((s) => s.id === formData.service);
 
-		// TRACKING - Tentative de réservation
 		logAnalyticsEvent("booking_started", {
 			service: selectedService.name,
 			service_price: selectedService.price,
 			date: formData.date,
 		});
 
-		// Vérifier une dernière fois la disponibilité
 		const available = await isSlotAvailable(formData.date, formData.heure, selectedService.duration);
 		if (!available) {
-			// TRACKING - Créneau déjà pris
 			logAnalyticsEvent("booking_slot_unavailable", {
 				service: selectedService.name,
 				requested_date: formData.date,
@@ -320,14 +326,12 @@ function BookingForm() {
 
 			alert("Désolé, ce créneau vient d'être réservé. Veuillez en choisir un autre.");
 			setIsSubmitting(false);
-			// Régénérer les créneaux disponibles
 			const slots = await generateTimeSlots(selectedService.duration, formData.date);
 			setAvailableSlots(slots);
 			return;
 		}
 
 		try {
-			// Sauvegarder la réservation dans Firebase
 			await addDoc(collection(db, "reservations"), {
 				prenom: formData.prenom,
 				nom: formData.nom,
@@ -340,9 +344,10 @@ function BookingForm() {
 				duration: selectedService.duration,
 				commentaires: formData.commentaires,
 				timestamp: new Date(),
+				price: selectedService.price,
+				isModelBooking: selectedService.isModelService || false,
 			});
 
-			// EmailJS template parameters
 			const templateParams = {
 				to_name: formData.prenom,
 				from_name: `${formData.prenom} ${formData.nom}`,
@@ -361,11 +366,9 @@ function BookingForm() {
 				instructions: "Venez avec les cils propres et démaquillés. Attention : présence de deux chats au domicile.",
 			};
 
-			// Send emails
 			await emailjs.send("service_4t9ude2", "template_z26jqp7", templateParams, "vSn8lOsAhAksc03kS");
 			await emailjs.send("service_4t9ude2", "template_8smxy0b", templateParams, "vSn8lOsAhAksc03kS");
 
-			// TRACKING - Réservation réussie (ÉVÉNEMENT DE CONVERSION PRINCIPAL)
 			logAnalyticsEvent("purchase", {
 				transaction_id: `booking_${Date.now()}`,
 				value: parseFloat(selectedService.price.replace("€", "")),
@@ -379,7 +382,6 @@ function BookingForm() {
 				],
 			});
 
-			// TRACKING - Événement personnalisé de réservation complétée
 			logAnalyticsEvent("booking_completed", {
 				service_name: selectedService.name,
 				service_id: selectedService.id,
@@ -391,7 +393,6 @@ function BookingForm() {
 
 			alert("Rendez-vous confirmé! Vous allez recevoir un email de confirmation.");
 
-			// Reset form
 			setFormData({
 				prenom: "",
 				nom: "",
@@ -406,7 +407,6 @@ function BookingForm() {
 		} catch (error) {
 			console.error("Erreur:", error);
 
-			// TRACKING - Erreur lors de la réservation
 			logAnalyticsEvent("booking_error", {
 				error_message: error.message,
 				service: selectedService.name,
@@ -431,7 +431,6 @@ function BookingForm() {
 		return maxDate.toISOString().split("T")[0];
 	};
 
-	// Afficher les jours d'ouverture
 	const getOpenDaysText = () => {
 		if (!weeklySchedule) return "";
 
@@ -484,7 +483,7 @@ function BookingForm() {
 					<div className="select-wrapper">
 						<select id="service" name="service" value={formData.service} onChange={handleServiceChange} required>
 							<option value="">Choisir un service</option>
-							{services.map((service) => (
+							{availableServices.map((service) => (
 								<option key={service.id} value={service.id}>
 									{service.name} - {service.price}
 								</option>
@@ -492,7 +491,7 @@ function BookingForm() {
 						</select>
 						<i className="fas fa-chevron-down select-arrow"></i>
 					</div>
-					{formData.service && <p className="service-description">{services.find((s) => s.id === formData.service)?.description}</p>}
+					{formData.service && <p className="service-description">{availableServices.find((s) => s.id === formData.service)?.description}</p>}
 				</div>
 
 				<div className="form-group">
@@ -501,7 +500,7 @@ function BookingForm() {
 					</label>
 					{weeklySchedule && (
 						<p className="opening-days-info">
-							<i className="fas fa-info-circle"></i> Jours d'ouverture: <strong>{getOpenDaysText()}</strong> sauf exception
+							<i className="fas fa-info-circle"></i> Jours d'ouverture: <strong>{getOpenDaysText()}</strong>
 						</p>
 					)}
 					<div className="date-input-container">

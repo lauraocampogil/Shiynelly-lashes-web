@@ -254,6 +254,28 @@
 	.radio-label-success {
 		width: 100%;
 	}
+	.toggle-model-service {
+		padding: 1rem;
+	}
+
+	.status-card {
+		flex-direction: column;
+		padding: 1.5rem;
+	}
+
+	.status-icon {
+		font-size: 3rem;
+		align-self: center;
+	}
+
+	.preview-cards {
+		grid-template-columns: 1fr;
+	}
+
+	.toggle-button {
+		font-size: 1rem;
+		padding: 0.9rem 1.5rem;
+	}
 }
 
 /* Pour très petits écrans */
