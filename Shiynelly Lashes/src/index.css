@@ -341,8 +341,7 @@ h2 {
 .prestations-grid {
 	display: grid;
 	grid-template-columns: repeat(4, 1fr); /* 4 colonnes */
-	grid-column-gap: 2rem; /* Espace horizontal */
-	grid-row-gap: 3rem; /* Espace vertical FORCÉ */
+	gap: 2rem;
 	align-items: stretch; /* Toutes les cartes même hauteur */
 }
 
@@ -1438,8 +1437,7 @@ h2 {
 
 	.prestations-grid {
 		grid-template-columns: 1fr; /* Une seule colonne sur mobile */
-		grid-column-gap: 0; /* Pas d'espace horizontal nécessaire */
-		grid-row-gap: 2rem;
+		gap: 1.5rem;
 	}
 
 	.prestations-container h2 {
