@@ -98,13 +98,19 @@ function Footer() {
 									<a href="#nosprestations">Pose Whispy</a>
 								</li>
 								<li>
+									<a href="#nosprestations">Pose Mixte</a>
+								</li>
+								<li>
 									<a href="#nosprestations">Pose Russe</a>
+								</li>
+								<li>
+									<a href="#nosprestations">Dépose</a>
 								</li>
 								<li>
 									<a href="#nosprestations">Clusters</a>
 								</li>
 								<li>
-									<a href="#nosprestations">Dépose</a>
+									<a href="#nosprestations">Pose de Cils</a>
 								</li>
 							</ul>
 						</div>
@@ -127,7 +133,7 @@ function Footer() {
 					</div>
 
 					<div className="footer-bottom">
-						<p>&copy; 2025 Unix Creative Studio. Tous droits réservés.</p>
+						<p>&copy; 2026 Unix Creative Studio. Tous droits réservés.</p>
 						<div className="footer-legal">
 							<a href="https://mixed-stoat-359.notion.site/Terms-and-Conditions-28788674cf3280a286eaf731367bed4b?source=copy_link">Mentions légales</a>
 							<span>•</span>

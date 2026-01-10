@@ -43,7 +43,7 @@ export const prestations = [
 		result: "Regard intense et fourni, parfait pour une beauté express",
 	},
 	{
-		title: "Coiffage + Pose de Cils",
+		title: "Pose de Cils",
 		description: "Coiffage de cils au perming suivi d'une pose complète pour un regard structuré et volumineux",
 		price: "35€",
 		result: "Des cils naturellement relevés et sublimés par des extensions, pour un regard maximal",
@@ -102,7 +102,7 @@ export const services = [
 	},
 	{
 		id: "coiffage-pose",
-		name: "Coiffage + Pose de Cils",
+		name: "Pose de Cils",
 		price: "35€",
 		duration: 330, // 5h30 in minutes
 		description: "Coiffage de cils au perming suivi d'une pose complète pour un regard structuré et volumineux.",
