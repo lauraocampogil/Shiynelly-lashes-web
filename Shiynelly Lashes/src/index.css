@@ -339,7 +339,7 @@ h2 {
 
 /* NOUVEAU GRID 4x4 */
 .prestations-grid {
-	display: grid;
+	display: grid !important;
 	grid-template-columns: repeat(4, 1fr); /* 4 colonnes */
 	gap: 2rem;
 	align-items: stretch; /* Toutes les cartes même hauteur */
@@ -937,7 +937,7 @@ h2 {
 
 .prestations-container.fade-in-up,
 .reservation-container.fade-in-up {
-	opacity: 1;
+	opacity: 1 !important;
 	transform: translateY(0);
 }
 /* Price Announcement Modal Styles */
