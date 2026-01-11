@@ -21,7 +21,6 @@ function BookingForm() {
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [weeklySchedule, setWeeklySchedule] = useState(null);
 	const [availableServices, setAvailableServices] = useState([]);
-	const [isValidatingDate, setIsValidatingDate] = useState(false);
 
 	useEffect(() => {
 		loadWeeklySchedule();
@@ -184,7 +183,6 @@ function BookingForm() {
 		const endAfternoon = 19 * 60;
 
 		const blockedHours = await getBlockedHours(selectedDate);
-
 		const allSlots = [];
 
 		for (let time = startMorning; time + serviceDuration <= endMorning; time += 30) {
@@ -237,27 +235,17 @@ function BookingForm() {
 		}
 	};
 
-	const handleChange = async (e) => {
+	// Gestion simple des champs normaux
+	const handleChange = (e) => {
 		const { name, value } = e.target;
+		setFormData({ ...formData, [name]: value });
+	};
 
-		// Pour tous les champs SAUF la date
-		if (name !== "date") {
-			setFormData({ ...formData, [name]: value });
-			return;
-		}
+	// Validation de la date UNIQUEMENT sur onBlur (quand l'utilisateur quitte le champ)
+	const handleDateBlur = async (e) => {
+		const value = e.target.value;
 
-		// GESTION SPÉCIALE DE LA DATE
-		// Si la date est vide (l'utilisateur a juste cliqué), on ne fait rien
-		if (!value || value === "") {
-			return;
-		}
-
-		// Si on est déjà en train de valider, on ignore
-		if (isValidatingDate) {
-			return;
-		}
-
-		setIsValidatingDate(true);
+		if (!value) return;
 
 		try {
 			// Vérifier si date ouverte exceptionnellement
@@ -273,27 +261,23 @@ function BookingForm() {
 			});
 
 			// Vérifier planning hebdomadaire
-			if (!isExceptionallyOpen) {
-				if (!isDayOpen(value)) {
-					const date = new Date(value + "T00:00:00");
-					const dayName = date.toLocaleDateString("fr-FR", { weekday: "long" });
-					alert(`Désolé, nous sommes fermés le ${dayName}. Veuillez choisir un jour d'ouverture.`);
-					setIsValidatingDate(false);
-					return;
-				}
+			if (!isExceptionallyOpen && !isDayOpen(value)) {
+				const date = new Date(value + "T00:00:00");
+				const dayName = date.toLocaleDateString("fr-FR", { weekday: "long" });
+				alert(`Désolé, nous sommes fermés le ${dayName}. Veuillez choisir un jour d'ouverture.`);
+				setFormData({ ...formData, date: "" });
+				return;
 			}
 
 			// Vérifier si date bloquée
 			const blocked = await isDateBlocked(value);
 			if (blocked) {
 				alert("Cette date n'est pas disponible. Veuillez choisir une autre date.");
-				setIsValidatingDate(false);
+				setFormData({ ...formData, date: "" });
 				return;
 			}
 
-			// Date valide! On peut l'enregistrer
-			setFormData({ ...formData, date: value });
-
+			// Date valide!
 			logAnalyticsEvent("date_selected", {
 				selected_date: value,
 			});
@@ -306,8 +290,6 @@ function BookingForm() {
 			}
 		} catch (error) {
 			console.error("Erreur validation date:", error);
-		} finally {
-			setIsValidatingDate(false);
 		}
 	};
 
@@ -517,7 +499,7 @@ function BookingForm() {
 						</p>
 					)}
 					<div className="date-input-container">
-						<input type="date" id="date" name="date" value={formData.date} onChange={handleChange} onBlur={handleChange} min={getMinDate()} max={getMaxDate()} required />
+						<input type="date" id="date" name="date" value={formData.date} onChange={handleChange} onBlur={handleDateBlur} min={getMinDate()} max={getMaxDate()} required />
 						<i className="fas date-calendar-icon"></i>
 					</div>
 				</div>
