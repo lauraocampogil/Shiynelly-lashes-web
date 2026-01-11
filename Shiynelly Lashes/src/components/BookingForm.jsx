@@ -21,14 +21,13 @@ function BookingForm() {
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [weeklySchedule, setWeeklySchedule] = useState(null);
 	const [availableServices, setAvailableServices] = useState([]);
+	const [isValidatingDate, setIsValidatingDate] = useState(false);
 
-	// Charger le planning hebdomadaire et le statut du service modèle au démarrage
 	useEffect(() => {
 		loadWeeklySchedule();
 		checkModelServiceStatus();
 	}, []);
 
-	// Charger le statut du service modèle
 	const checkModelServiceStatus = async () => {
 		try {
 			const docRef = doc(db, "settings", "modelService");
@@ -36,9 +35,7 @@ function BookingForm() {
 
 			const isOpen = docSnap.exists() ? docSnap.data().isOpen : false;
 
-			// Filtrer les services disponibles
 			const filtered = services.filter((service) => {
-				// Si c'est le service modèle et qu'il est fermé, on l'exclut
 				if (service.isModelService && !isOpen) {
 					return false;
 				}
@@ -48,12 +45,10 @@ function BookingForm() {
 			setAvailableServices(filtered);
 		} catch (error) {
 			console.error("Erreur vérification service modèle:", error);
-			// En cas d'erreur, on affiche tous les services sauf le modèle
 			setAvailableServices(services.filter((s) => !s.isModelService));
 		}
 	};
 
-	// Charger le planning hebdomadaire depuis Firebase
 	const loadWeeklySchedule = async () => {
 		try {
 			const docRef = doc(db, "settings", "weeklySchedule");
@@ -62,7 +57,6 @@ function BookingForm() {
 			if (docSnap.exists()) {
 				setWeeklySchedule(docSnap.data());
 			} else {
-				// Planning par défaut si pas encore configuré
 				setWeeklySchedule({
 					monday: { open: false, label: "Lundi" },
 					tuesday: { open: false, label: "Mardi" },
@@ -87,7 +81,6 @@ function BookingForm() {
 		}
 	};
 
-	// Vérifier si un jour est ouvert selon le planning hebdomadaire
 	const isDayOpen = (dateString) => {
 		if (!weeklySchedule) return false;
 
@@ -108,7 +101,6 @@ function BookingForm() {
 		return weeklySchedule[dayKey]?.open ?? false;
 	};
 
-	// Fonction pour vérifier si un créneau est disponible
 	const isSlotAvailable = async (date, startTime, duration) => {
 		try {
 			const [hours, minutes] = startTime.split(":").map(Number);
@@ -135,7 +127,6 @@ function BookingForm() {
 		}
 	};
 
-	// Vérifier si une date est complètement bloquée
 	const isDateBlocked = async (date) => {
 		try {
 			const q = query(collection(db, "blockedDates"), where("date", "==", date));
@@ -163,7 +154,6 @@ function BookingForm() {
 		}
 	};
 
-	// Récupérer les heures bloquées pour une date
 	const getBlockedHours = async (date) => {
 		try {
 			const q = query(collection(db, "blockedDates"), where("date", "==", date), where("allDay", "==", false));
@@ -250,12 +240,27 @@ function BookingForm() {
 	const handleChange = async (e) => {
 		const { name, value } = e.target;
 
-		if (name === "date") {
-			if (!value) {
-				setFormData({ ...formData, [name]: value });
-				return;
-			}
+		// Pour tous les champs SAUF la date
+		if (name !== "date") {
+			setFormData({ ...formData, [name]: value });
+			return;
+		}
 
+		// GESTION SPÉCIALE DE LA DATE
+		// Si la date est vide (l'utilisateur a juste cliqué), on ne fait rien
+		if (!value || value === "") {
+			return;
+		}
+
+		// Si on est déjà en train de valider, on ignore
+		if (isValidatingDate) {
+			return;
+		}
+
+		setIsValidatingDate(true);
+
+		try {
+			// Vérifier si date ouverte exceptionnellement
 			const q = query(collection(db, "blockedDates"), where("date", "==", value));
 			const querySnapshot = await getDocs(q);
 
@@ -267,35 +272,43 @@ function BookingForm() {
 				}
 			});
 
+			// Vérifier planning hebdomadaire
 			if (!isExceptionallyOpen) {
 				if (!isDayOpen(value)) {
 					const date = new Date(value + "T00:00:00");
 					const dayName = date.toLocaleDateString("fr-FR", { weekday: "long" });
 					alert(`Désolé, nous sommes fermés le ${dayName}. Veuillez choisir un jour d'ouverture.`);
-					setFormData({ ...formData, date: "" });
+					setIsValidatingDate(false);
 					return;
 				}
 			}
 
+			// Vérifier si date bloquée
 			const blocked = await isDateBlocked(value);
 			if (blocked) {
 				alert("Cette date n'est pas disponible. Veuillez choisir une autre date.");
-				setFormData({ ...formData, date: "" });
+				setIsValidatingDate(false);
 				return;
 			}
+
+			// Date valide! On peut l'enregistrer
+			setFormData({ ...formData, date: value });
 
 			logAnalyticsEvent("date_selected", {
 				selected_date: value,
 			});
 
+			// Générer les créneaux
 			if (formData.service) {
 				const selectedService = availableServices.find((s) => s.id === formData.service);
 				const slots = await generateTimeSlots(selectedService.duration, value);
 				setAvailableSlots(slots);
 			}
+		} catch (error) {
+			console.error("Erreur validation date:", error);
+		} finally {
+			setIsValidatingDate(false);
 		}
-
-		setFormData({ ...formData, [name]: value });
 	};
 
 	const handleSubmit = async (e) => {
@@ -504,7 +517,7 @@ function BookingForm() {
 						</p>
 					)}
 					<div className="date-input-container">
-						<input type="date" id="date" name="date" value={formData.date} onChange={handleChange} min={getMinDate()} max={getMaxDate()} required />
+						<input type="date" id="date" name="date" value={formData.date} onChange={handleChange} onBlur={handleChange} min={getMinDate()} max={getMaxDate()} required />
 						<i className="fas date-calendar-icon"></i>
 					</div>
 				</div>
@@ -539,7 +552,7 @@ function BookingForm() {
 					</h4>
 					<ul>
 						<li>Venez avec les cils propres et démaquillés</li>
-						<li>Attention : présence de deux chats au domicile</li>
+						<li>Attention: présence de deux chats au domicile</li>
 					</ul>
 				</div>
 
