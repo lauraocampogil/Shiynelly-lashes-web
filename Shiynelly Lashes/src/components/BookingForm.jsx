@@ -250,12 +250,23 @@ function BookingForm() {
 	const handleChange = async (e) => {
 		const { name, value } = e.target;
 
-		if (name === "date") {
-			if (!value || value === formData.date) {
-				setFormData({ ...formData, [name]: value });
-				return;
-			}
+		// Pour tous les champs SAUF date
+		if (name !== "date") {
+			setFormData({ ...formData, [name]: value });
+			return;
+		}
 
+		// POUR LA DATE: Met à jour IMMÉDIATEMENT
+		setFormData({ ...formData, date: value });
+
+		// Si vide, on arrête là
+		if (!value) return;
+
+		// ATTENDRE 300ms pour que le calendrier se ferme
+		await new Promise((resolve) => setTimeout(resolve, 300));
+
+		// Maintenant on peut valider
+		try {
 			const q = query(collection(db, "blockedDates"), where("date", "==", value));
 			const querySnapshot = await getDocs(q);
 
@@ -267,14 +278,12 @@ function BookingForm() {
 				}
 			});
 
-			if (!isExceptionallyOpen) {
-				if (!isDayOpen(value)) {
-					const date = new Date(value + "T00:00:00");
-					const dayName = date.toLocaleDateString("fr-FR", { weekday: "long" });
-					alert(`Désolé, nous sommes fermés le ${dayName}. Veuillez choisir un jour d'ouverture.`);
-					setFormData({ ...formData, date: "" });
-					return;
-				}
+			if (!isExceptionallyOpen && !isDayOpen(value)) {
+				const date = new Date(value + "T00:00:00");
+				const dayName = date.toLocaleDateString("fr-FR", { weekday: "long" });
+				alert(`Désolé, nous sommes fermés le ${dayName}. Veuillez choisir un jour d'ouverture.`);
+				setFormData({ ...formData, date: "" });
+				return;
 			}
 
 			const blocked = await isDateBlocked(value);
@@ -284,18 +293,17 @@ function BookingForm() {
 				return;
 			}
 
-			logAnalyticsEvent("date_selected", {
-				selected_date: value,
-			});
+			logAnalyticsEvent("date_selected", { selected_date: value });
 
 			if (formData.service) {
 				const selectedService = availableServices.find((s) => s.id === formData.service);
 				const slots = await generateTimeSlots(selectedService.duration, value);
 				setAvailableSlots(slots);
 			}
+		} catch (error) {
+			if (error.name === "AbortError") return; // Ignore silencieusement
+			console.error("Erreur validation date:", error);
 		}
-
-		setFormData({ ...formData, [name]: value });
 	};
 
 	const handleSubmit = async (e) => {
