@@ -247,62 +247,65 @@ function BookingForm() {
 		}
 	};
 
+	// 🔥 FIX iOS: Update date FIRST, then validate
 	const handleChange = async (e) => {
 		const { name, value } = e.target;
 
-		// Pour tous les champs SAUF date
+		// Pour tous les champs sauf la date, update directement
 		if (name !== "date") {
 			setFormData({ ...formData, [name]: value });
 			return;
 		}
 
-		// POUR LA DATE: Met à jour IMMÉDIATEMENT
+		// Pour la date : update immédiatement pour permettre la sélection
 		setFormData({ ...formData, date: value });
 
-		// Si vide, on arrête là
-		if (!value) return;
+		// Si pas de valeur (reset), on arrête là
+		if (!value) {
+			return;
+		}
 
-		// ATTENDRE 300ms pour que le calendrier se ferme
-		await new Promise((resolve) => setTimeout(resolve, 300));
+		// Vérifier d'abord si la date est OUVERTE exceptionnellement
+		const q = query(collection(db, "blockedDates"), where("date", "==", value));
+		const querySnapshot = await getDocs(q);
 
-		// Maintenant on peut valider
-		try {
-			const q = query(collection(db, "blockedDates"), where("date", "==", value));
-			const querySnapshot = await getDocs(q);
+		let isExceptionallyOpen = false;
+		querySnapshot.forEach((doc) => {
+			const data = doc.data();
+			if (data.actionType === "open") {
+				isExceptionallyOpen = true;
+			}
+		});
 
-			let isExceptionallyOpen = false;
-			querySnapshot.forEach((doc) => {
-				const data = doc.data();
-				if (data.actionType === "open") {
-					isExceptionallyOpen = true;
-				}
-			});
-
-			if (!isExceptionallyOpen && !isDayOpen(value)) {
+		// Si pas exceptionnellement ouverte, vérifier le planning hebdomadaire
+		if (!isExceptionallyOpen) {
+			if (!isDayOpen(value)) {
 				const date = new Date(value + "T00:00:00");
 				const dayName = date.toLocaleDateString("fr-FR", { weekday: "long" });
 				alert(`Désolé, nous sommes fermés le ${dayName}. Veuillez choisir un jour d'ouverture.`);
 				setFormData({ ...formData, date: "" });
 				return;
 			}
+		}
 
-			const blocked = await isDateBlocked(value);
-			if (blocked) {
-				alert("Cette date n'est pas disponible. Veuillez choisir une autre date.");
-				setFormData({ ...formData, date: "" });
-				return;
-			}
+		// Vérifier si la date est bloquée
+		const blocked = await isDateBlocked(value);
+		if (blocked) {
+			alert("Cette date n'est pas disponible. Veuillez choisir une autre date.");
+			setFormData({ ...formData, date: "" });
+			return;
+		}
 
-			logAnalyticsEvent("date_selected", { selected_date: value });
+		// TRACKING
+		logAnalyticsEvent("date_selected", {
+			selected_date: value,
+		});
 
-			if (formData.service) {
-				const selectedService = availableServices.find((s) => s.id === formData.service);
-				const slots = await generateTimeSlots(selectedService.duration, value);
-				setAvailableSlots(slots);
-			}
-		} catch (error) {
-			if (error.name === "AbortError") return; // Ignore silencieusement
-			console.error("Erreur validation date:", error);
+		// Générer les créneaux horaires
+		if (formData.service) {
+			const selectedService = availableServices.find((s) => s.id === formData.service);
+			const slots = await generateTimeSlots(selectedService.duration, value);
+			setAvailableSlots(slots);
 		}
 	};
 
@@ -547,7 +550,7 @@ function BookingForm() {
 					</h4>
 					<ul>
 						<li>Venez avec les cils propres et démaquillés</li>
-						<li>Attention : présence de deux chats au domicile</li>
+						<li>Attention: présence de deux chats au domicile</li>
 					</ul>
 				</div>
 
