@@ -247,16 +247,20 @@ function BookingForm() {
 		}
 	};
 
-	// Simple onChange - just update state, no validation
-	const handleChange = (e) => {
+	// 🔥 FIX iOS: Update date FIRST, then validate
+	const handleChange = async (e) => {
 		const { name, value } = e.target;
-		setFormData({ ...formData, [name]: value });
-	};
 
-	// Validate date on blur (when user finishes selecting)
-	const handleDateBlur = async (e) => {
-		const value = e.target.value;
+		// Pour tous les champs sauf la date, update directement
+		if (name !== "date") {
+			setFormData({ ...formData, [name]: value });
+			return;
+		}
 
+		// Pour la date : update immédiatement pour permettre la sélection
+		setFormData({ ...formData, date: value });
+
+		// Si pas de valeur (reset), on arrête là
 		if (!value) {
 			return;
 		}
@@ -511,7 +515,7 @@ function BookingForm() {
 						</p>
 					)}
 					<div className="date-input-container">
-						<input type="date" id="date" name="date" value={formData.date} onChange={handleChange} onBlur={handleDateBlur} min={getMinDate()} max={getMaxDate()} required />
+						<input type="date" id="date" name="date" value={formData.date} onChange={handleChange} min={getMinDate()} max={getMaxDate()} required />
 						<i className="fas date-calendar-icon"></i>
 					</div>
 				</div>
@@ -546,7 +550,7 @@ function BookingForm() {
 					</h4>
 					<ul>
 						<li>Venez avec les cils propres et démaquillés</li>
-						<li>Attention : présence de deux chats au domicile</li>
+						<li>Attention: présence de deux chats au domicile</li>
 					</ul>
 				</div>
 
