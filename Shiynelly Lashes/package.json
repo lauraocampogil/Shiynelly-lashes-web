@@ -16,10 +16,12 @@
 		"@emailjs/browser": "^4.4.1",
 		"@fortawesome/fontawesome-free": "^7.1.0",
 		"@react-three/fiber": "^9.3.0",
+		"date-fns": "^4.1.0",
 		"firebase": "^12.4.0",
 		"framer-motion": "^12.23.24",
 		"gsap": "^3.13.0",
 		"react": "^19.1.1",
+		"react-datepicker": "^9.1.0",
 		"react-dom": "^19.1.1",
 		"react-router-dom": "^7.9.4",
 		"three": "^0.180.0"

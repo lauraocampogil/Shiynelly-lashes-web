@@ -1,4 +1,7 @@
 import { useState, useRef, useEffect } from "react";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { fr } from "date-fns/locale";
 import emailjs from "@emailjs/browser";
 import { services } from "../../constants/index.js";
 import { db, logAnalyticsEvent } from "../firebase/config.js";
@@ -17,18 +20,20 @@ function BookingForm() {
 		commentaires: "",
 	});
 
+	const [selectedDate, setSelectedDate] = useState(null);
 	const [availableSlots, setAvailableSlots] = useState([]);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [weeklySchedule, setWeeklySchedule] = useState(null);
 	const [availableServices, setAvailableServices] = useState([]);
+	const [blockedDatesCache, setBlockedDatesCache] = useState([]);
+	const [exceptionalOpenDates, setExceptionalOpenDates] = useState([]);
 
-	// Charger le planning hebdomadaire et le statut du service modèle au démarrage
 	useEffect(() => {
 		loadWeeklySchedule();
 		checkModelServiceStatus();
+		loadBlockedDates();
 	}, []);
 
-	// Charger le statut du service modèle
 	const checkModelServiceStatus = async () => {
 		try {
 			const docRef = doc(db, "settings", "modelService");
@@ -36,9 +41,7 @@ function BookingForm() {
 
 			const isOpen = docSnap.exists() ? docSnap.data().isOpen : false;
 
-			// Filtrer les services disponibles
 			const filtered = services.filter((service) => {
-				// Si c'est le service modèle et qu'il est fermé, on l'exclut
 				if (service.isModelService && !isOpen) {
 					return false;
 				}
@@ -48,12 +51,10 @@ function BookingForm() {
 			setAvailableServices(filtered);
 		} catch (error) {
 			console.error("Erreur vérification service modèle:", error);
-			// En cas d'erreur, on affiche tous les services sauf le modèle
 			setAvailableServices(services.filter((s) => !s.isModelService));
 		}
 	};
 
-	// Charger le planning hebdomadaire depuis Firebase
 	const loadWeeklySchedule = async () => {
 		try {
 			const docRef = doc(db, "settings", "weeklySchedule");
@@ -62,7 +63,6 @@ function BookingForm() {
 			if (docSnap.exists()) {
 				setWeeklySchedule(docSnap.data());
 			} else {
-				// Planning par défaut si pas encore configuré
 				setWeeklySchedule({
 					monday: { open: false, label: "Lundi" },
 					tuesday: { open: false, label: "Mardi" },
@@ -87,11 +87,34 @@ function BookingForm() {
 		}
 	};
 
-	// Vérifier si un jour est ouvert selon le planning hebdomadaire
-	const isDayOpen = (dateString) => {
+	// Charger toutes les dates bloquées et exceptionnelles au démarrage
+	const loadBlockedDates = async () => {
+		try {
+			const q = query(collection(db, "blockedDates"));
+			const querySnapshot = await getDocs(q);
+
+			const blocked = [];
+			const exceptional = [];
+
+			querySnapshot.forEach((doc) => {
+				const data = doc.data();
+				if (data.actionType === "open") {
+					exceptional.push(data.date);
+				} else if (data.allDay) {
+					blocked.push(data.date);
+				}
+			});
+
+			setBlockedDatesCache(blocked);
+			setExceptionalOpenDates(exceptional);
+		} catch (error) {
+			console.error("Erreur chargement dates bloquées:", error);
+		}
+	};
+
+	const isDayOpen = (date) => {
 		if (!weeklySchedule) return false;
 
-		const date = new Date(dateString + "T00:00:00");
 		const dayIndex = date.getDay();
 
 		const dayMap = {
@@ -108,7 +131,24 @@ function BookingForm() {
 		return weeklySchedule[dayKey]?.open ?? false;
 	};
 
-	// Fonction pour vérifier si un créneau est disponible
+	// Fonction pour react-datepicker : filtrer les dates disponibles
+	const isDateAvailable = (date) => {
+		const dateString = date.toISOString().split("T")[0];
+
+		// Vérifier si la date est exceptionnellement ouverte
+		if (exceptionalOpenDates.includes(dateString)) {
+			return true;
+		}
+
+		// Vérifier si la date est bloquée
+		if (blockedDatesCache.includes(dateString)) {
+			return false;
+		}
+
+		// Vérifier le planning hebdomadaire
+		return isDayOpen(date);
+	};
+
 	const isSlotAvailable = async (date, startTime, duration) => {
 		try {
 			const [hours, minutes] = startTime.split(":").map(Number);
@@ -135,35 +175,6 @@ function BookingForm() {
 		}
 	};
 
-	// Vérifier si une date est complètement bloquée
-	const isDateBlocked = async (date) => {
-		try {
-			const q = query(collection(db, "blockedDates"), where("date", "==", date));
-			const querySnapshot = await getDocs(q);
-
-			let hasOpenException = false;
-			let hasBlockException = false;
-
-			querySnapshot.forEach((doc) => {
-				const data = doc.data();
-				if (data.actionType === "open") {
-					hasOpenException = true;
-				} else if (data.allDay && (!data.actionType || data.actionType === "block")) {
-					hasBlockException = true;
-				}
-			});
-
-			if (hasOpenException) return false;
-			if (hasBlockException) return true;
-
-			return false;
-		} catch (error) {
-			console.error("Erreur vérification date bloquée:", error);
-			return false;
-		}
-	};
-
-	// Récupérer les heures bloquées pour une date
 	const getBlockedHours = async (date) => {
 		try {
 			const q = query(collection(db, "blockedDates"), where("date", "==", date), where("allDay", "==", false));
@@ -247,64 +258,33 @@ function BookingForm() {
 		}
 	};
 
-	// 🔥 FIX iOS: Update date FIRST, then validate
-	const handleChange = async (e) => {
+	const handleChange = (e) => {
 		const { name, value } = e.target;
+		setFormData({ ...formData, [name]: value });
+	};
 
-		// Pour tous les champs sauf la date, update directement
-		if (name !== "date") {
-			setFormData({ ...formData, [name]: value });
+	// Handle date selection from react-datepicker
+	const handleDateChange = async (date) => {
+		if (!date) {
+			setSelectedDate(null);
+			setFormData({ ...formData, date: "", heure: "" });
+			setAvailableSlots([]);
 			return;
 		}
 
-		// Pour la date : update immédiatement pour permettre la sélection
-		setFormData({ ...formData, date: value });
-
-		// Si pas de valeur (reset), on arrête là
-		if (!value) {
-			return;
-		}
-
-		// Vérifier d'abord si la date est OUVERTE exceptionnellement
-		const q = query(collection(db, "blockedDates"), where("date", "==", value));
-		const querySnapshot = await getDocs(q);
-
-		let isExceptionallyOpen = false;
-		querySnapshot.forEach((doc) => {
-			const data = doc.data();
-			if (data.actionType === "open") {
-				isExceptionallyOpen = true;
-			}
-		});
-
-		// Si pas exceptionnellement ouverte, vérifier le planning hebdomadaire
-		if (!isExceptionallyOpen) {
-			if (!isDayOpen(value)) {
-				const date = new Date(value + "T00:00:00");
-				const dayName = date.toLocaleDateString("fr-FR", { weekday: "long" });
-				alert(`Désolé, nous sommes fermés le ${dayName}. Veuillez choisir un jour d'ouverture.`);
-				setFormData({ ...formData, date: "" });
-				return;
-			}
-		}
-
-		// Vérifier si la date est bloquée
-		const blocked = await isDateBlocked(value);
-		if (blocked) {
-			alert("Cette date n'est pas disponible. Veuillez choisir une autre date.");
-			setFormData({ ...formData, date: "" });
-			return;
-		}
+		setSelectedDate(date);
+		const dateString = date.toISOString().split("T")[0];
+		setFormData({ ...formData, date: dateString, heure: "" });
 
 		// TRACKING
 		logAnalyticsEvent("date_selected", {
-			selected_date: value,
+			selected_date: dateString,
 		});
 
 		// Générer les créneaux horaires
 		if (formData.service) {
 			const selectedService = availableServices.find((s) => s.id === formData.service);
-			const slots = await generateTimeSlots(selectedService.duration, value);
+			const slots = await generateTimeSlots(selectedService.duration, dateString);
 			setAvailableSlots(slots);
 		}
 	};
@@ -312,8 +292,8 @@ function BookingForm() {
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 
-		if (!isDayOpen(formData.date)) {
-			alert("Ce jour n'est pas disponible pour les réservations");
+		if (!formData.date) {
+			alert("Veuillez sélectionner une date");
 			return;
 		}
 
@@ -414,6 +394,7 @@ function BookingForm() {
 				heure: "",
 				commentaires: "",
 			});
+			setSelectedDate(null);
 			setAvailableSlots([]);
 		} catch (error) {
 			console.error("Erreur:", error);
@@ -429,17 +410,6 @@ function BookingForm() {
 		} finally {
 			setIsSubmitting(false);
 		}
-	};
-
-	const getMinDate = () => {
-		const today = new Date();
-		return today.toISOString().split("T")[0];
-	};
-
-	const getMaxDate = () => {
-		const maxDate = new Date();
-		maxDate.setMonth(maxDate.getMonth() + 3);
-		return maxDate.toISOString().split("T")[0];
 	};
 
 	const getOpenDaysText = () => {
@@ -461,6 +431,9 @@ function BookingForm() {
 		const lastDay = openDays.pop();
 		return `${openDays.join(", ")} et ${lastDay}`;
 	};
+
+	const maxBookingDate = new Date();
+	maxBookingDate.setFullYear(maxBookingDate.getFullYear() + 2); // +2 ans
 
 	return (
 		<div className="booking-container" id="reservation">
@@ -515,8 +488,19 @@ function BookingForm() {
 						</p>
 					)}
 					<div className="date-input-container">
-						<input type="date" id="date" name="date" value={formData.date} onChange={handleChange} min={getMinDate()} max={getMaxDate()} required />
-						<i className="fas date-calendar-icon"></i>
+						<DatePicker
+							selected={selectedDate}
+							onChange={handleDateChange}
+							filterDate={isDateAvailable}
+							minDate={new Date()}
+							maxDate={maxBookingDate}
+							locale={fr}
+							dateFormat="dd/MM/yyyy"
+							placeholderText="Sélectionner une date"
+							className="date-picker-input"
+							required
+						/>
+						<i className="fas fa-calendar-alt date-calendar-icon"></i>
 					</div>
 				</div>
 
