@@ -27,6 +27,34 @@ function BookingForm() {
 	const [availableServices, setAvailableServices] = useState([]);
 	const [blockedDatesCache, setBlockedDatesCache] = useState([]);
 	const [exceptionalOpenDates, setExceptionalOpenDates] = useState([]);
+	const [isLoadingSlots, setIsLoadingSlots] = useState(false);
+
+	// Remplace le useEffect qui génère les slots par celui-ci :
+	useEffect(() => {
+		const generateSlotsForSelectedDate = async () => {
+			if (formData.service && formData.date) {
+				const selectedService = availableServices.find((s) => s.id === formData.service);
+				if (selectedService) {
+					setIsLoadingSlots(true);
+					setAvailableSlots([]); // Reset avant de charger
+
+					try {
+						console.log("📱 Génération slots pour:", formData.date, selectedService.duration);
+						const slots = await generateTimeSlots(selectedService.duration, formData.date);
+						console.log("📱 Slots générés:", slots);
+						setAvailableSlots(slots);
+					} catch (error) {
+						console.error("❌ Erreur génération slots:", error);
+						setAvailableSlots([]);
+					} finally {
+						setIsLoadingSlots(false);
+					}
+				}
+			}
+		};
+
+		generateSlotsForSelectedDate();
+	}, [formData.service, formData.date, availableServices, generateTimeSlots]);
 
 	// ✅ FONCTION HELPER - Formate une date en string YYYY-MM-DD sans conversion UTC
 	const formatDateToString = (date) => {
@@ -575,6 +603,7 @@ function BookingForm() {
 					<p>Date sélectionnée (objet): {selectedDate ? formatDateToString(selectedDate) : "NULL"}</p>
 					<p>Créneaux: {availableSlots.length}</p>
 					<p>Liste: {availableSlots.join(", ") || "VIDE"}</p>
+					<p>Loading slots: {isLoadingSlots ? "OUI ⏳" : "NON"}</p>
 				</div>
 
 				<div className="form-group">
