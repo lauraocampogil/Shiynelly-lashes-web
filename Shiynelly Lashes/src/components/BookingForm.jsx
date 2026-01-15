@@ -545,6 +545,15 @@ function BookingForm() {
 									</option>
 								))}
 							</select>
+							<div style={{ background: "yellow", padding: "10px", margin: "10px 0" }}>
+								<p>
+									<strong>DEBUG INFO:</strong>
+								</p>
+								<p>Service sélectionné: {formData.service || "AUCUN"}</p>
+								<p>Date sélectionnée: {formData.date || "AUCUNE"}</p>
+								<p>Nombre de créneaux: {availableSlots.length}</p>
+								<p>Créneaux: {availableSlots.join(", ") || "VIDE"}</p>
+							</div>
 							<i className="fas fa-chevron-down select-arrow"></i>
 						</div>
 					</div>
