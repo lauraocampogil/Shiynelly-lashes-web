@@ -238,10 +238,10 @@ function BookingForm() {
 		}
 
 		for (const slot of allSlots) {
-			const available = await isSlotAvailable(selectedDate, slot, serviceDuration);
-			if (available) {
-				slots.push(slot);
-			}
+			//const available = await isSlotAvailable(selectedDate, slot, serviceDuration);
+			//if (available) {
+			slots.push(slot);
+			//}
 		}
 
 		return slots;
