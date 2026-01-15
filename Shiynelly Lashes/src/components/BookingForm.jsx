@@ -27,6 +27,7 @@ function BookingForm() {
 	const [availableServices, setAvailableServices] = useState([]);
 	const [blockedDatesCache, setBlockedDatesCache] = useState([]);
 	const [exceptionalOpenDates, setExceptionalOpenDates] = useState([]);
+	const [debugInfo, setDebugInfo] = useState("En attente...");
 
 	// ✅ FONCTION HELPER - Formate une date en string YYYY-MM-DD sans conversion UTC
 	const formatDateToString = (date) => {
@@ -307,15 +308,24 @@ function BookingForm() {
 			if (formData.service && formData.date && availableServices.length > 0) {
 				const selectedService = availableServices.find((s) => s.id === formData.service);
 				if (selectedService) {
-					const slots = await generateTimeSlots(selectedService.duration, formData.date);
-					setAvailableSlots(slots);
+					setDebugInfo("Génération en cours...");
+					try {
+						const slots = await generateTimeSlots(selectedService.duration, formData.date);
+						setDebugInfo(`Terminé: ${slots.length} slots trouvés`);
+						setAvailableSlots(slots);
+					} catch (error) {
+						setDebugInfo(`ERREUR: ${error.message}`);
+					}
+				} else {
+					setDebugInfo("Service non trouvé");
 				}
+			} else {
+				setDebugInfo(`Conditions non remplies: service=${formData.service}, date=${formData.date}, services=${availableServices.length}`);
 			}
 		};
 
 		generateSlotsForSelectedDate();
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [formData.service, formData.date, availableServices]);
+	}, [formData.service, formData.date, availableServices, generateTimeSlots]);
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
@@ -579,6 +589,7 @@ function BookingForm() {
 					<p>Services chargés: {availableServices.length}</p>
 					<p>Service trouvé: {availableServices.find((s) => s.id === formData.service)?.name || "NON TROUVÉ"}</p>
 					<p>Duration: {availableServices.find((s) => s.id === formData.service)?.duration || "?"}</p>
+					<p style={{ color: "blue", fontWeight: "bold" }}>Debug génération: {debugInfo}</p>
 				</div>
 
 				<div className="form-group">
