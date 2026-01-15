@@ -28,6 +28,14 @@ function BookingForm() {
 	const [blockedDatesCache, setBlockedDatesCache] = useState([]);
 	const [exceptionalOpenDates, setExceptionalOpenDates] = useState([]);
 
+	// ✅ FONCTION HELPER - Formate une date en string YYYY-MM-DD sans conversion UTC
+	const formatDateToString = (date) => {
+		const year = date.getFullYear();
+		const month = String(date.getMonth() + 1).padStart(2, "0");
+		const day = String(date.getDate()).padStart(2, "0");
+		return `${year}-${month}-${day}`;
+	};
+
 	useEffect(() => {
 		loadWeeklySchedule();
 		checkModelServiceStatus();
@@ -131,9 +139,9 @@ function BookingForm() {
 		return weeklySchedule[dayKey]?.open ?? false;
 	};
 
-	// Fonction pour react-datepicker : filtrer les dates disponibles
+	// ✅ CORRIGÉ - Fonction pour react-datepicker : filtrer les dates disponibles
 	const isDateAvailable = (date) => {
-		const dateString = date.toISOString().split("T")[0];
+		const dateString = formatDateToString(date); // ← Correction ici
 
 		// Vérifier si la date est exceptionnellement ouverte
 		if (exceptionalOpenDates.includes(dateString)) {
@@ -236,7 +244,7 @@ function BookingForm() {
 		}
 
 		return slots;
-	}, []); // Dépendances vides si getBlockedHours et isSlotAvailable n'utilisent pas de state
+	}, []);
 
 	const handleServiceChange = async (e) => {
 		const serviceId = e.target.value;
@@ -263,7 +271,7 @@ function BookingForm() {
 		setFormData({ ...formData, [name]: value });
 	};
 
-	// Handle date selection from react-datepicker
+	// ✅ CORRIGÉ - Handle date selection from react-datepicker
 	const handleDateChange = async (date) => {
 		if (!date) {
 			setSelectedDate(null);
@@ -273,7 +281,7 @@ function BookingForm() {
 		}
 
 		setSelectedDate(date);
-		const dateString = date.toISOString().split("T")[0];
+		const dateString = formatDateToString(date); // ← Correction ici
 
 		// IMPORTANT : Mettre à jour formData AVANT de générer les slots
 		const newFormData = { ...formData, date: dateString, heure: "" };
@@ -292,7 +300,8 @@ function BookingForm() {
 			}
 		}
 	};
-	// Ajoute ce useEffect après tes autres useEffect
+
+	// useEffect pour générer les slots quand service ou date change
 	useEffect(() => {
 		const generateSlotsForSelectedDate = async () => {
 			if (formData.service && formData.date) {
@@ -305,7 +314,7 @@ function BookingForm() {
 		};
 
 		generateSlotsForSelectedDate();
-	}, [formData.service, formData.date, availableServices, generateTimeSlots]); // Se déclenche quand service ou date change
+	}, [formData.service, formData.date, availableServices, generateTimeSlots]);
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
@@ -451,7 +460,7 @@ function BookingForm() {
 	};
 
 	const maxBookingDate = new Date();
-	maxBookingDate.setFullYear(maxBookingDate.getFullYear() + 2); // +2 ans
+	maxBookingDate.setFullYear(maxBookingDate.getFullYear() + 2);
 
 	return (
 		<div className="booking-container" id="reservation">
@@ -529,15 +538,7 @@ function BookingForm() {
 							<i className="far fa-clock"></i> Heure préférée
 						</label>
 						<div className="select-wrapper">
-							<select
-								id="heure"
-								name="heure"
-								value={formData.heure}
-								onChange={handleChange}
-								disabled={!formData.service || !formData.date || availableSlots.length === 0}
-								key={`slots-${formData.date}-${availableSlots.length}`} // ← Ajoute cette key
-								required
-							>
+							<select id="heure" name="heure" value={formData.heure} onChange={handleChange} disabled={!formData.service || !formData.date || availableSlots.length === 0} key={`slots-${formData.date}-${availableSlots.length}`} required>
 								<option value="">{!formData.date ? "Choisir d'abord une date" : !formData.service ? "Choisir d'abord un service" : availableSlots.length === 0 ? "Aucun créneau disponible" : "Choisir un créneau"}</option>
 								{availableSlots.map((slot) => (
 									<option key={slot} value={slot}>
@@ -549,12 +550,15 @@ function BookingForm() {
 						</div>
 					</div>
 				</div>
+
+				{/* DEBUG BOX - À SUPPRIMER APRÈS TEST */}
 				<div style={{ background: "yellow", padding: "10px", margin: "10px 0", border: "2px solid red" }}>
 					<p>
 						<strong>DEBUG INFO:</strong>
 					</p>
 					<p>Service: {formData.service || "AUCUN"}</p>
 					<p>Date: {formData.date || "AUCUNE"}</p>
+					<p>Date sélectionnée (objet): {selectedDate ? formatDateToString(selectedDate) : "NULL"}</p>
 					<p>Créneaux: {availableSlots.length}</p>
 					<p>Liste: {availableSlots.join(", ") || "VIDE"}</p>
 				</div>
