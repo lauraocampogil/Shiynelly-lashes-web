@@ -532,22 +532,36 @@ function BookingForm() {
 					</div>
 				</div>
 
-				<div className="form-row">
-					<div className="form-group">
-						<label htmlFor="heure">
-							<i className="far fa-clock"></i> Heure préférée
-						</label>
-						<div className="select-wrapper">
-							<select id="heure" name="heure" value={formData.heure} onChange={handleChange} disabled={!formData.service || !formData.date || availableSlots.length === 0} key={`slots-${formData.date}-${availableSlots.length}`} required>
-								<option value="">{!formData.date ? "Choisir d'abord une date" : !formData.service ? "Choisir d'abord un service" : availableSlots.length === 0 ? "Aucun créneau disponible" : "Choisir un créneau"}</option>
-								{availableSlots.map((slot) => (
-									<option key={slot} value={slot}>
-										{slot}
-									</option>
-								))}
-							</select>
-							<i className="fas fa-chevron-down select-arrow"></i>
-						</div>
+				<div className="form-group">
+					<label htmlFor="heure">
+						<i className="far fa-clock"></i> Heure préférée
+					</label>
+					<div className="select-wrapper">
+						<select
+							id="heure"
+							name="heure"
+							value={formData.heure}
+							onChange={handleChange}
+							disabled={!formData.service || !formData.date || availableSlots.length === 0}
+							key={`slots-${formData.date}-${formData.service}-${availableSlots.join(",")}`} // ← CLÉ PLUS SPÉCIFIQUE
+							required
+						>
+							<option value="">
+								{!formData.date
+									? "Choisir d'abord une date"
+									: !formData.service
+									? "Choisir d'abord un service"
+									: availableSlots.length === 0
+									? "Chargement des créneaux..." // ← Message différent
+									: "Choisir un créneau"}
+							</option>
+							{availableSlots.map((slot) => (
+								<option key={slot} value={slot}>
+									{slot}
+								</option>
+							))}
+						</select>
+						<i className="fas fa-chevron-down select-arrow"></i>
 					</div>
 				</div>
 
