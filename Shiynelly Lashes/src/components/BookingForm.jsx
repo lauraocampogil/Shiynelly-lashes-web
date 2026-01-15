@@ -304,11 +304,9 @@ function BookingForm() {
 	// useEffect pour générer les slots quand service ou date change
 	useEffect(() => {
 		const generateSlotsForSelectedDate = async () => {
-			if (formData.service && formData.date) {
+			if (formData.service && formData.date && availableServices.length > 0) {
 				const selectedService = availableServices.find((s) => s.id === formData.service);
 				if (selectedService) {
-					await new Promise((resolve) => setTimeout(resolve, 100));
-
 					const slots = await generateTimeSlots(selectedService.duration, formData.date);
 					setAvailableSlots(slots);
 				}
@@ -316,7 +314,8 @@ function BookingForm() {
 		};
 
 		generateSlotsForSelectedDate();
-	}, [formData.service, formData.date, availableServices, generateTimeSlots]);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [formData.service, formData.date, availableServices]);
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
