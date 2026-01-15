@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { fr } from "date-fns/locale";
@@ -195,7 +195,7 @@ function BookingForm() {
 		}
 	};
 
-	const generateTimeSlots = async (serviceDuration, selectedDate) => {
+	const generateTimeSlots = useCallback(async (serviceDuration, selectedDate) => {
 		if (!selectedDate) return [];
 
 		const slots = [];
@@ -236,7 +236,7 @@ function BookingForm() {
 		}
 
 		return slots;
-	};
+	}, []); // Dépendances vides si getBlockedHours et isSlotAvailable n'utilisent pas de state
 
 	const handleServiceChange = async (e) => {
 		const serviceId = e.target.value;
@@ -274,20 +274,38 @@ function BookingForm() {
 
 		setSelectedDate(date);
 		const dateString = date.toISOString().split("T")[0];
-		setFormData({ ...formData, date: dateString, heure: "" });
 
-		// TRACKING
+		// IMPORTANT : Mettre à jour formData AVANT de générer les slots
+		const newFormData = { ...formData, date: dateString, heure: "" };
+		setFormData(newFormData);
+
 		logAnalyticsEvent("date_selected", {
 			selected_date: dateString,
 		});
 
-		// Générer les créneaux horaires
-		if (formData.service) {
-			const selectedService = availableServices.find((s) => s.id === formData.service);
-			const slots = await generateTimeSlots(selectedService.duration, dateString);
-			setAvailableSlots(slots);
+		// Utiliser newFormData.service au lieu de formData.service
+		if (newFormData.service) {
+			const selectedService = availableServices.find((s) => s.id === newFormData.service);
+			if (selectedService) {
+				const slots = await generateTimeSlots(selectedService.duration, dateString);
+				setAvailableSlots(slots);
+			}
 		}
 	};
+	// Ajoute ce useEffect après tes autres useEffect
+	useEffect(() => {
+		const generateSlotsForSelectedDate = async () => {
+			if (formData.service && formData.date) {
+				const selectedService = availableServices.find((s) => s.id === formData.service);
+				if (selectedService) {
+					const slots = await generateTimeSlots(selectedService.duration, formData.date);
+					setAvailableSlots(slots);
+				}
+			}
+		};
+
+		generateSlotsForSelectedDate();
+	}, [formData.service, formData.date, availableServices, generateTimeSlots]); // Se déclenche quand service ou date change
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
