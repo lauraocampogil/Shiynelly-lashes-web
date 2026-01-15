@@ -307,6 +307,8 @@ function BookingForm() {
 			if (formData.service && formData.date) {
 				const selectedService = availableServices.find((s) => s.id === formData.service);
 				if (selectedService) {
+					await new Promise((resolve) => setTimeout(resolve, 100));
+
 					const slots = await generateTimeSlots(selectedService.duration, formData.date);
 					setAvailableSlots(slots);
 				}
