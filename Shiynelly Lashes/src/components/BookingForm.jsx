@@ -27,7 +27,6 @@ function BookingForm() {
 	const [availableServices, setAvailableServices] = useState([]);
 	const [blockedDatesCache, setBlockedDatesCache] = useState([]);
 	const [exceptionalOpenDates, setExceptionalOpenDates] = useState([]);
-	const [debugInfo, setDebugInfo] = useState("En attente...");
 
 	// ✅ FONCTION HELPER - Formate une date en string YYYY-MM-DD sans conversion UTC
 	const formatDateToString = (date) => {
@@ -164,14 +163,23 @@ function BookingForm() {
 			const startMinutes = hours * 60 + minutes;
 			const endMinutes = startMinutes + duration;
 
-			const q = query(collection(db, "reservations"), where("date", "==", date));
-			const querySnapshot = await getDocs(q);
+			const reservationsRef = collection(db, "reservations");
+			const q = query(reservationsRef, where("date", "==", date));
 
-			for (const doc of querySnapshot.docs) {
-				const booking = doc.data();
+			let querySnapshot;
+			try {
+				querySnapshot = await getDocs(q);
+			} catch (firebaseError) {
+				console.error("Firebase query error:", firebaseError);
+				// Si Firebase échoue, on considère le slot disponible
+				return true;
+			}
+
+			for (const docSnap of querySnapshot.docs) {
+				const booking = docSnap.data();
 				const [bookingHours, bookingMinutes] = booking.heure.split(":").map(Number);
 				const bookingStart = bookingHours * 60 + bookingMinutes;
-				const bookingEnd = bookingStart + booking.duration;
+				const bookingEnd = bookingStart + (booking.duration || 60);
 
 				if ((startMinutes >= bookingStart && startMinutes < bookingEnd) || (endMinutes > bookingStart && endMinutes <= bookingEnd) || (startMinutes <= bookingStart && endMinutes >= bookingEnd)) {
 					return false;
@@ -179,8 +187,9 @@ function BookingForm() {
 			}
 			return true;
 		} catch (error) {
-			console.error("Erreur lors de la vérification de disponibilité:", error);
-			return false;
+			console.error("Erreur isSlotAvailable:", error);
+			// En cas d'erreur, on considère le slot disponible
+			return true;
 		}
 	};
 
@@ -238,10 +247,10 @@ function BookingForm() {
 		}
 
 		for (const slot of allSlots) {
-			//const available = await isSlotAvailable(selectedDate, slot, serviceDuration);
-			//if (available) {
-			slots.push(slot);
-			//}
+			const available = await isSlotAvailable(selectedDate, slot, serviceDuration);
+			if (available) {
+				slots.push(slot);
+			}
 		}
 
 		return slots;
@@ -301,31 +310,6 @@ function BookingForm() {
 			}
 		}
 	};
-
-	// useEffect pour générer les slots quand service ou date change
-	useEffect(() => {
-		const generateSlotsForSelectedDate = async () => {
-			if (formData.service && formData.date && availableServices.length > 0) {
-				const selectedService = availableServices.find((s) => s.id === formData.service);
-				if (selectedService) {
-					setDebugInfo("Génération en cours...");
-					try {
-						const slots = await generateTimeSlots(selectedService.duration, formData.date);
-						setDebugInfo(`Terminé: ${slots.length} slots trouvés`);
-						setAvailableSlots(slots);
-					} catch (error) {
-						setDebugInfo(`ERREUR: ${error.message}`);
-					}
-				} else {
-					setDebugInfo("Service non trouvé");
-				}
-			} else {
-				setDebugInfo(`Conditions non remplies: service=${formData.service}, date=${formData.date}, services=${availableServices.length}`);
-			}
-		};
-
-		generateSlotsForSelectedDate();
-	}, [formData.service, formData.date, availableServices, generateTimeSlots]);
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
@@ -574,22 +558,6 @@ function BookingForm() {
 						</select>
 						<i className="fas fa-chevron-down select-arrow"></i>
 					</div>
-				</div>
-
-				{/* DEBUG BOX - À SUPPRIMER APRÈS TEST */}
-				<div style={{ background: "yellow", padding: "10px", margin: "10px 0", border: "2px solid red" }}>
-					<p>
-						<strong>DEBUG INFO:</strong>
-					</p>
-					<p>Service: {formData.service || "AUCUN"}</p>
-					<p>Date: {formData.date || "AUCUNE"}</p>
-					<p>Date sélectionnée (objet): {selectedDate ? formatDateToString(selectedDate) : "NULL"}</p>
-					<p>Créneaux: {availableSlots.length}</p>
-					<p>Liste: {availableSlots.join(", ") || "VIDE"}</p>
-					<p>Services chargés: {availableServices.length}</p>
-					<p>Service trouvé: {availableServices.find((s) => s.id === formData.service)?.name || "NON TROUVÉ"}</p>
-					<p>Duration: {availableServices.find((s) => s.id === formData.service)?.duration || "?"}</p>
-					<p style={{ color: "blue", fontWeight: "bold" }}>Debug génération: {debugInfo}</p>
 				</div>
 
 				<div className="form-group">
