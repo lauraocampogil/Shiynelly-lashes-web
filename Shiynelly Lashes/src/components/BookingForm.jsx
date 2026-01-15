@@ -576,6 +576,7 @@ function BookingForm() {
 					<p>Date sélectionnée (objet): {selectedDate ? formatDateToString(selectedDate) : "NULL"}</p>
 					<p>Créneaux: {availableSlots.length}</p>
 					<p>Liste: {availableSlots.join(", ") || "VIDE"}</p>
+					<p>Services chargés: {availableServices.length}</p>
 				</div>
 
 				<div className="form-group">
