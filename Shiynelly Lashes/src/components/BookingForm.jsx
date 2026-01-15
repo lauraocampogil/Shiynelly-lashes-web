@@ -516,6 +516,7 @@ function BookingForm() {
 							dateFormat="dd/MM/yyyy"
 							placeholderText="Sélectionner une date"
 							className="date-picker-input"
+							inline={false}
 							required
 						/>
 						<i className="fas fa-calendar-alt date-calendar-icon"></i>
@@ -528,7 +529,15 @@ function BookingForm() {
 							<i className="far fa-clock"></i> Heure préférée
 						</label>
 						<div className="select-wrapper">
-							<select id="heure" name="heure" value={formData.heure} onChange={handleChange} disabled={!formData.service || !formData.date || availableSlots.length === 0} required>
+							<select
+								id="heure"
+								name="heure"
+								value={formData.heure}
+								onChange={handleChange}
+								disabled={!formData.service || !formData.date || availableSlots.length === 0}
+								key={`slots-${formData.date}-${availableSlots.length}`} // ← Ajoute cette key
+								required
+							>
 								<option value="">{!formData.date ? "Choisir d'abord une date" : !formData.service ? "Choisir d'abord un service" : availableSlots.length === 0 ? "Aucun créneau disponible" : "Choisir un créneau"}</option>
 								{availableSlots.map((slot) => (
 									<option key={slot} value={slot}>
