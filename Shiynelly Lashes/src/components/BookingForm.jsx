@@ -577,6 +577,8 @@ function BookingForm() {
 					<p>Créneaux: {availableSlots.length}</p>
 					<p>Liste: {availableSlots.join(", ") || "VIDE"}</p>
 					<p>Services chargés: {availableServices.length}</p>
+					<p>Service trouvé: {availableServices.find((s) => s.id === formData.service)?.name || "NON TROUVÉ"}</p>
+					<p>Duration: {availableServices.find((s) => s.id === formData.service)?.duration || "?"}</p>
 				</div>
 
 				<div className="form-group">
