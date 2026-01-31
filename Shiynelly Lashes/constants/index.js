@@ -43,12 +43,6 @@ export const prestations = [
 		result: "Regard intense et fourni, parfait pour une beauté express",
 	},
 	{
-		title: "Pose de Cils",
-		description: "Coiffage de cils au perming suivi d'une pose complète pour un regard structuré et volumineux",
-		price: "35€",
-		result: "Des cils naturellement relevés et sublimés par des extensions, pour un regard maximal",
-	},
-	{
 		title: "Modèle - Entraînement",
 		description: "Prestation gratuite pour modèle (uniquement sur rendez-vous confirmé par l'esthéticienne)",
 		price: "Gratuit",
@@ -99,13 +93,6 @@ export const services = [
 		price: "15€",
 		duration: 120, // 2h in minutes
 		description: "La dépose de cils permet de retirer en douceur les extensions sans abîmer les cils naturels.",
-	},
-	{
-		id: "coiffage-pose",
-		name: "Pose de Cils",
-		price: "35€",
-		duration: 330, // 5h30 in minutes
-		description: "Coiffage de cils au perming suivi d'une pose complète pour un regard structuré et volumineux.",
 	},
 	// SERVICE MODÈLE - Non visible dans le formulaire client normal
 	{
