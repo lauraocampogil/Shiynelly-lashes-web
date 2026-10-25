@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { logAnalyticsEvent } from "../firebase/config.js";
+import UnixCredit from "./UnixCredit.jsx";
 
 function Footer() {
 	const footerRef = useRef(null);
@@ -133,7 +134,8 @@ function Footer() {
 					</div>
 
 					<div className="footer-bottom">
-						<p>&copy; 2026 Unix Creative Studio. Tous droits réservés.</p>
+						<p>&copy; 2026 Shiynelly Lashes. Tous droits réservés.</p>
+						<UnixCredit />
 						<div className="footer-legal">
 							<a href="https://mixed-stoat-359.notion.site/Terms-and-Conditions-28788674cf3280a286eaf731367bed4b?source=copy_link">Mentions légales</a>
 							<span>•</span>

@@ -1234,6 +1234,29 @@ h2 {
 .footer-legal span {
 	color: #8a7a68;
 }
+
+/* Crédit « Made with love by Unix » (logo Unix, prend la couleur du texte) */
+.unix-credit {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.4em;
+	margin-top: 0.25rem;
+}
+
+.unix-credit a {
+	display: inline-flex;
+	color: inherit;
+	transition: opacity 0.3s ease;
+}
+
+.unix-credit a:hover {
+	opacity: 0.7;
+}
+
+.unix-credit-logo {
+	height: 1.1em;
+	width: auto;
+}
 /* Animation styles - add these to your existing CSS */
 .hero-animate {
 	opacity: 0;
